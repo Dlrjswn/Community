@@ -20,4 +20,8 @@ public class PostImage {
 
     @Column(nullable = false)
     private String imageUrl;
+
+    @ManyToOne
+    @JoinColumn(name = "post_id", nullable = false)
+    private Post post;
 }

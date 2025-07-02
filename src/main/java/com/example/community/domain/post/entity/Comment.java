@@ -23,4 +23,8 @@ public class Comment extends BaseEntity {
     @Column(nullable = false)
     private String content;
 
+    @ManyToOne
+    @JoinColumn(name = "post_id", nullable = false)
+    private Post post;
+
 }

@@ -1,5 +1,6 @@
 package com.example.community.domain.post.entity;
 
+import com.example.community.domain.user.entity.User;
 import com.example.community.global.common.BaseEntity;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -32,5 +33,9 @@ public class Post extends BaseEntity {
     private int likeCount;
 
     private int viewCount;
+
+    @ManyToOne
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
 
 }
