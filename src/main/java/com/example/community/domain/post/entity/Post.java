@@ -26,6 +26,8 @@ public class Post extends BaseEntity {
     @Column(nullable = false)
     private String content;
 
+    @Enumerated(EnumType.STRING)
+    private Category category;
 
     private int likeCount;
 
