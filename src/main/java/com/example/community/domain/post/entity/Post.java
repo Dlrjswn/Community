@@ -38,4 +38,13 @@ public class Post extends BaseEntity {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
+    public void modifyTitle(String title){
+        this.title = title;
+    }
+
+    public void modifyContent(String content){
+        this.content = content;
+    }
+
+
 }

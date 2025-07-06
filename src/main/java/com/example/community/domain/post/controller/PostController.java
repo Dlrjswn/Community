@@ -19,7 +19,12 @@ public class PostController {
 
 
     @PostMapping("/save")
-    public ApiResponse<PostResponse.SaveDto> save(@AuthenticationPrincipal UserDetails userDetails, @RequestBody PostRequest.SaveDto saveDto) {
-        return ApiResponse.onSuccess(postService.save(userDetails.getUsername(), saveDto));
+    public ApiResponse<PostResponse.SaveDto> savePost(@AuthenticationPrincipal UserDetails userDetails, @RequestBody PostRequest.SaveDto saveDto) {
+        return ApiResponse.onSuccess(postService.savePost(userDetails.getUsername(), saveDto));
+    }
+
+    @PatchMapping("/modify")
+    public ApiResponse<PostResponse.ModifyDto> modifyPost(@RequestBody PostRequest.ModifyDto modifyDto) {
+        return ApiResponse.onSuccess(postService.modifyPost(modifyDto));
     }
 }

@@ -14,4 +14,12 @@ public class PostResponse {
         private String message;
     }
 
+    @Getter
+    @Builder
+    public static class ModifyDto{
+        private LocalDate createdAt;
+        private LocalDate modifiedAt;
+        private String message;
+    }
+
 }

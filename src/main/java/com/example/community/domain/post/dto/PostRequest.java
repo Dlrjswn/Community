@@ -15,4 +15,13 @@ public class PostRequest {
 
     }
 
+    @Getter
+    public static class ModifyDto{
+        private Long postId;
+        private String title;
+        private String content;
+        private List<String> addedImageUrls;
+        private List<Long> removedImageIds;
+    }
+
 }
