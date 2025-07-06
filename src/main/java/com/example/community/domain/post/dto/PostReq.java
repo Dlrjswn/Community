@@ -4,10 +4,10 @@ import lombok.Getter;
 
 import java.util.List;
 
-public class PostRequest {
+public class PostReq {
 
     @Getter
-    public static class SaveDto{
+    public static class SavePostDto{
         private String title;
         private String content;
         private String category;
@@ -16,12 +16,13 @@ public class PostRequest {
     }
 
     @Getter
-    public static class ModifyDto{
+    public static class ModifyPostDto{
         private Long postId;
         private String title;
         private String content;
         private List<String> addedImageUrls;
         private List<Long> removedImageIds;
     }
+
 
 }

@@ -1,7 +1,7 @@
 package com.example.community.domain.post.controller;
 
-import com.example.community.domain.post.dto.PostRequest;
-import com.example.community.domain.post.dto.PostResponse;
+import com.example.community.domain.post.dto.PostReq;
+import com.example.community.domain.post.dto.PostRes;
 import com.example.community.domain.post.service.PostService;
 import com.example.community.global.common.ApiResponse;
 import lombok.RequiredArgsConstructor;
@@ -19,12 +19,12 @@ public class PostController {
 
 
     @PostMapping("/save")
-    public ApiResponse<PostResponse.SaveDto> savePost(@AuthenticationPrincipal UserDetails userDetails, @RequestBody PostRequest.SaveDto saveDto) {
-        return ApiResponse.onSuccess(postService.savePost(userDetails.getUsername(), saveDto));
+    public ApiResponse<PostRes.SavePostDto> savePost(@AuthenticationPrincipal UserDetails userDetails, @RequestBody PostReq.SavePostDto savePostDto) {
+        return ApiResponse.onSuccess(postService.savePost(userDetails.getUsername(), savePostDto));
     }
 
     @PatchMapping("/modify")
-    public ApiResponse<PostResponse.ModifyDto> modifyPost(@RequestBody PostRequest.ModifyDto modifyDto) {
-        return ApiResponse.onSuccess(postService.modifyPost(modifyDto));
+    public ApiResponse<PostRes.ModifyPostDto> modifyPost(@RequestBody PostReq.ModifyPostDto modifyPostDto) {
+        return ApiResponse.onSuccess(postService.modifyPost(modifyPostDto));
     }
 }
