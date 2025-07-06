@@ -12,7 +12,6 @@ public class PostRes {
     @Builder
     public static class SavePostDto{
         private LocalDateTime createdAt;
-        private String message;
     }
 
     @Getter
@@ -20,7 +19,7 @@ public class PostRes {
     public static class ModifyPostDto{
         private LocalDateTime createdAt;
         private LocalDateTime modifiedAt;
-        private String message;
     }
+
 
 }

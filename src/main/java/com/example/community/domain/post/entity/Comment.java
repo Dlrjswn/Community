@@ -1,5 +1,6 @@
 package com.example.community.domain.post.entity;
 
+import com.example.community.domain.user.entity.User;
 import com.example.community.global.common.BaseEntity;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -26,5 +27,9 @@ public class Comment extends BaseEntity {
     @ManyToOne
     @JoinColumn(name = "post_id", nullable = false)
     private Post post;
+
+    @ManyToOne
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
 
 }

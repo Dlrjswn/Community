@@ -45,7 +45,6 @@ public class PostService {
 
         return PostRes.SavePostDto.builder()
                 .createdAt(post.getCreatedAt())
-                .message("게시글 저장 완료")
                 .build();
 
 
@@ -75,7 +74,6 @@ public class PostService {
         return PostRes.ModifyPostDto.builder()
                 .createdAt(post.getCreatedAt())
                 .modifiedAt(post.getModifiedAt())
-                .message("게시물 수정 완료")
                 .build();
 
 
