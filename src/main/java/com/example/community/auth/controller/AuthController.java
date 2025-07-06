@@ -39,7 +39,7 @@ public class AuthController {
         }
 
         User user = User.builder()
-                .name(signupDto.getName())
+                .nickname(signupDto.getNickname())
                 .username(signupDto.getUsername())
                 .password(encoder.encode(signupDto.getPassword()))
                 .email(signupDto.getEmail())

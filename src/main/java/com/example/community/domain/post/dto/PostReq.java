@@ -24,5 +24,11 @@ public class PostReq {
         private List<Long> removedImageIds;
     }
 
+    @Getter
+    public static class GetPostDetailDto{
+        private Long postId;
+    }
+
+
 
 }

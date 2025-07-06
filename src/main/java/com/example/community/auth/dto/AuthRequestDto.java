@@ -6,7 +6,7 @@ public class AuthRequestDto {
 
     @Getter
     public static class Signup {
-        private String name;
+        private String nickname;
         private String username;
         private String password;
         private String email;
