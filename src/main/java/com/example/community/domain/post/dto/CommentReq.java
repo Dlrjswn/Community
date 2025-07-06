@@ -9,4 +9,10 @@ public class CommentReq {
         private Long postId;
         private String content;
     }
+
+    @Getter
+    public static class ModifyCommentDto{
+        private Long commentId;
+        private String content;
+    }
 }

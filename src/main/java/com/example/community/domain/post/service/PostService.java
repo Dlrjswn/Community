@@ -72,7 +72,6 @@ public class PostService {
 
 
         return PostRes.ModifyPostDto.builder()
-                .createdAt(post.getCreatedAt())
                 .modifiedAt(post.getModifiedAt())
                 .build();
 

@@ -17,7 +17,6 @@ public class PostRes {
     @Getter
     @Builder
     public static class ModifyPostDto{
-        private LocalDateTime createdAt;
         private LocalDateTime modifiedAt;
     }
 

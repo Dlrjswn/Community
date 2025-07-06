@@ -12,4 +12,10 @@ public class CommentRes {
     public static class SaveCommentDto{
         private LocalDateTime createdAt;
     }
+
+    @Getter
+    @Builder
+    public static class ModifyCommentDto{
+        private LocalDateTime modifiedAt;
+    }
 }

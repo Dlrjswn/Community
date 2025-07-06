@@ -38,4 +38,13 @@ public class CommentService {
                 .createdAt(comment.getCreatedAt())
                 .build();
     }
+
+    public CommentRes.ModifyCommentDto modifyComment(CommentReq.ModifyCommentDto modifyCommentDto) {
+        Comment comment = commentRepository.findById(modifyCommentDto.getCommentId()).orElseThrow(()->new RuntimeException("해당 댓글을 찾을 수 없습니다."));
+        comment.modifyContent(modifyCommentDto.getContent());
+
+        return CommentRes.ModifyCommentDto.builder()
+                .modifiedAt(comment.getModifiedAt())
+                .build();
+    }
 }
