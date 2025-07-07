@@ -29,6 +29,15 @@ public class PostReq {
         private Long postId;
     }
 
+    @Getter
+    public static class GetPostListDto{
+        private String category;
+        private int page;
+        private int pageSize;
+        private String sort;  //"like" or "latest"
+
+    }
+
 
 
 

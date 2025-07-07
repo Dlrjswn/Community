@@ -5,6 +5,7 @@ import com.example.community.domain.post.dto.PostRes;
 import com.example.community.domain.post.service.PostService;
 import com.example.community.global.common.ApiResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
@@ -31,5 +32,10 @@ public class PostController {
     @GetMapping("/detail")
     public ApiResponse<PostRes.GetPostDetailDto> getPostDetail(@RequestBody PostReq.GetPostDetailDto getPostDetailDto) {
         return ApiResponse.onSuccess(postService.getPostDetail(getPostDetailDto));
+    }
+
+    @GetMapping("/search")
+    public ApiResponse<Page<PostRes.PostPreviewDto>> getPostList(@RequestBody PostReq.GetPostListDto getPostListDto) {
+        return ApiResponse.onSuccess(postService.getPostList(getPostListDto));
     }
 }

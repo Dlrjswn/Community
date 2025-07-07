@@ -12,6 +12,9 @@ import com.example.community.domain.post.repository.PostRepository;
 import com.example.community.domain.user.entity.User;
 import com.example.community.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -105,5 +108,10 @@ public class PostService {
                 .imageUrls(imageUrls)
                 .comments(comments)
                 .build();
+    }
+
+    // 카테고리별, 키워드
+    public Page<PostRes.PostPreviewDto> getPostList(PostReq.GetPostListDto getPostListDto) {
+        return postRepository.getPosts(getPostListDto).map(PostRes::toPostPreviewDto);
     }
 }
