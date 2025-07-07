@@ -27,4 +27,9 @@ public class PostController {
     public ApiResponse<PostRes.ModifyPostDto> modifyPost(@RequestBody PostReq.ModifyPostDto modifyPostDto) {
         return ApiResponse.onSuccess(postService.modifyPost(modifyPostDto));
     }
+
+    @GetMapping("/detail")
+    public ApiResponse<PostRes.GetPostDetailDto> getPostDetail(@RequestBody PostReq.GetPostDetailDto getPostDetailDto) {
+        return ApiResponse.onSuccess(postService.getPostDetail(getPostDetailDto));
+    }
 }
