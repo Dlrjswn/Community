@@ -10,6 +10,8 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/v1/post")
 @RequiredArgsConstructor
@@ -37,5 +39,10 @@ public class PostController {
     @GetMapping("/search")
     public ApiResponse<Page<PostRes.PostPreviewDto>> getPostList(@RequestBody PostReq.GetPostListDto getPostListDto) {
         return ApiResponse.onSuccess(postService.getPostList(getPostListDto));
+    }
+
+    @GetMapping("/my-post")
+    public ApiResponse<List<PostRes.PostPreviewDto>> getMyPostList(@AuthenticationPrincipal UserDetails userDetails) {
+        return ApiResponse.onSuccess(postService.getMyPostList(userDetails.getUsername()));
     }
 }

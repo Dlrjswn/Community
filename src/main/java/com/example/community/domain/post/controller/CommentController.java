@@ -25,4 +25,7 @@ public class CommentController {
     public ApiResponse<CommentRes.ModifyCommentDto> modifyComment(@RequestBody CommentReq.ModifyCommentDto modifyCommentDto) {
         return ApiResponse.onSuccess(commentService.modifyComment(modifyCommentDto));
     }
+
+    @GetMapping("/my-comment")
+    public
 }

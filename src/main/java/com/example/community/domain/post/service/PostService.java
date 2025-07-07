@@ -114,4 +114,9 @@ public class PostService {
     public Page<PostRes.PostPreviewDto> getPostList(PostReq.GetPostListDto getPostListDto) {
         return postRepository.getPosts(getPostListDto).map(PostRes::toPostPreviewDto);
     }
+
+    public List<PostRes.PostPreviewDto> getMyPostList(String username) {
+        User user = userRepository.findByUsername(username).orElseThrow(()->new RuntimeException("해당 사용자를 찾을 수 없습니다."));
+        return postRepository.findAllByUser(user).stream().map(PostRes::toPostPreviewDto).toList();
+    }
 }
