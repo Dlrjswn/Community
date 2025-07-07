@@ -13,6 +13,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 @Service
 @Transactional
 @RequiredArgsConstructor
@@ -46,5 +48,11 @@ public class CommentService {
         return CommentRes.ModifyCommentDto.builder()
                 .modifiedAt(comment.getModifiedAt())
                 .build();
+    }
+
+    public List<CommentRes.CommentDto> getMyCommentList(String username) {
+        User user = userRepository.findByUsername(username).orElseThrow(()->new RuntimeException("해당 사용자를 찾을 수 없습니다."));
+        return commentRepository.findAllByUser(user).stream().map(CommentRes::toCommentDto).toList();
+
     }
 }
