@@ -3,6 +3,7 @@ package com.example.community.auth.controller;
 import com.example.community.auth.dto.AuthRequestDto;
 import com.example.community.auth.dto.AuthResponseDto;
 import com.example.community.auth.jwt.JwtUtil;
+import com.example.community.domain.user.entity.Role;
 import com.example.community.domain.user.entity.User;
 import com.example.community.domain.user.repository.UserRepository;
 import com.example.community.global.common.ApiResponse;
@@ -43,12 +44,15 @@ public class AuthController {
                 .username(signupDto.getUsername())
                 .password(encoder.encode(signupDto.getPassword()))
                 .email(signupDto.getEmail())
+                .role(Role.USER)
                 .build();
 
         userRepository.save(user);
 
         return ApiResponse.onSuccess("회원가입 성공");
     }
+
+
 
     @PostMapping("/login")
     public ApiResponse<AuthResponseDto.Login> login(@RequestBody AuthRequestDto.Login loginDto) {

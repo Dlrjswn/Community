@@ -28,7 +28,7 @@ import java.util.Collections;
             return new org.springframework.security.core.userdetails.User(
                     user.getUsername(),
                     user.getPassword(),
-                    Collections.singleton(new SimpleGrantedAuthority("ROLE_USER"))
+                    Collections.singleton(new SimpleGrantedAuthority("ROLE_" + user.getRole().name()))
             );
         }
     }
