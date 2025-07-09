@@ -2,6 +2,7 @@ package com.example.community.domain.post.controller;
 
 import com.example.community.domain.post.dto.PostReq;
 import com.example.community.domain.post.dto.PostRes;
+import com.example.community.domain.post.service.LikeService;
 import com.example.community.domain.post.service.PostService;
 import com.example.community.global.common.ApiResponse;
 import lombok.RequiredArgsConstructor;
@@ -45,4 +46,7 @@ public class PostController {
     public ApiResponse<List<PostRes.PostPreviewDto>> getMyPostList(@AuthenticationPrincipal UserDetails userDetails) {
         return ApiResponse.onSuccess(postService.getMyPostList(userDetails.getUsername()));
     }
+
+
+
 }
