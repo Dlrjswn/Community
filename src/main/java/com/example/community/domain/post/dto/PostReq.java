@@ -38,6 +38,14 @@ public class PostReq {
 
     }
 
+    @Getter
+    public static class SearchPostListDto{
+        private String keyword;
+        private int page;
+        private int pageSize;
+        private String sort; //"like" or "latest"
+    }
+
 
 
 

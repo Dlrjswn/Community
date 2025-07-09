@@ -37,7 +37,7 @@ public class PostController {
         return ApiResponse.onSuccess(postService.getPostDetail(getPostDetailDto));
     }
 
-    @GetMapping("/search")
+    @GetMapping("/list")
     public ApiResponse<Page<PostRes.PostPreviewDto>> getPostList(@RequestBody PostReq.GetPostListDto getPostListDto) {
         return ApiResponse.onSuccess(postService.getPostList(getPostListDto));
     }
@@ -45,6 +45,11 @@ public class PostController {
     @GetMapping("/my-post")
     public ApiResponse<List<PostRes.PostPreviewDto>> getMyPostList(@AuthenticationPrincipal UserDetails userDetails) {
         return ApiResponse.onSuccess(postService.getMyPostList(userDetails.getUsername()));
+    }
+
+    @GetMapping("search")
+    public ApiResponse<Page<PostRes.PostPreviewDto>> searchPostList(@RequestBody PostReq.SearchPostListDto savePostListDto){
+        return ApiResponse.onSuccess(postService.searchPostList(savePostListDto));
     }
 
 

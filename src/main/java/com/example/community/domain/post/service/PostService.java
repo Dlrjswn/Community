@@ -15,6 +15,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -120,4 +121,14 @@ public class PostService {
         return postRepository.findAllByUser(user).stream().map(PostRes::toPostPreviewDto).toList();
     }
 
+    public Page<PostRes.PostPreviewDto> searchPostList(PostReq.SearchPostListDto savePostListDto) {
+        Sort sort;
+        if ("like".equalsIgnoreCase(savePostListDto.getSort())) {
+            sort = Sort.by(Sort.Direction.DESC, "likeCount"); // 좋아요순
+        } else {
+            sort = Sort.by(Sort.Direction.DESC, "createdAt"); // 최신순 (기본값)
+        }
+        Pageable pageable = PageRequest.of(savePostListDto.getPage(), savePostListDto.getPageSize(), sort);
+        return postRepository.findByTitleContaining(savePostListDto.getKeyword(), pageable).map(PostRes::toPostPreviewDto);
+    }
 }

@@ -63,11 +63,6 @@ public class PostRes {
                 .build();
     }
 
-    @Getter
-    @Builder
-    public static class LikePostDto{
-        private LocalDateTime createdAt;
-    }
 
 
 
