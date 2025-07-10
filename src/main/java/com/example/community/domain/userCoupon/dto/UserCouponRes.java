@@ -10,6 +10,7 @@ public class UserCouponRes {
     @Getter
     @Builder
     public static class IssueCouponDto{
+        private String message;
         private LocalDateTime issuedAt;
         private LocalDateTime expiredAt;
     }

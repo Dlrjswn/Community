@@ -25,22 +25,35 @@ public class UserCouponService {
     private final UserRepository userRepository;
 
     public UserCouponRes.IssueCouponDto issueCoupon(String username, UserCouponReq.IssueCouponDto issueCouponDto) {
-        User user = userRepository.findByUsername(username).orElseThrow(()-> new RuntimeException("해당 사용자를 찾을 수 없습니다."));
-        Coupon coupon = couponRepository.findById(issueCouponDto.getCouponId()).orElseThrow(()->new RuntimeException("해당 쿠폰을 찾을 수 없습니다."));
+        User user = userRepository.findByUsername(username).orElseThrow(() -> new RuntimeException("해당 사용자를 찾을 수 없습니다."));
+        Coupon coupon = couponRepository.findById(issueCouponDto.getCouponId()).orElseThrow(() -> new RuntimeException("해당 쿠폰을 찾을 수 없습니다."));
 
-        UserCoupon userCoupon = UserCoupon.builder()
-                .user(user)
-                .coupon(coupon)
-                .expiredAt(LocalDateTime.now().plusDays(coupon.getValidDays()))
-                .isUsed(false)
-                .usedAt(null)
-                .build();
+        if (coupon.getMaxAmount() > coupon.getCurrentAmount()) {
+            coupon.increaseCurrentAmount();
 
-        userCouponRepository.save(userCoupon);
+            UserCoupon userCoupon = UserCoupon.builder()
+                    .user(user)
+                    .coupon(coupon)
+                    .expiredAt(LocalDateTime.now().plusDays(coupon.getValidDays()))
+                    .isUsed(false)
+                    .usedAt(null)
+                    .build();
 
-        return UserCouponRes.IssueCouponDto.builder()
-                .issuedAt(userCoupon.getCreatedAt())
-                .expiredAt(userCoupon.getExpiredAt())
-                .build();
+            userCouponRepository.save(userCoupon);
+
+
+            return UserCouponRes.IssueCouponDto.builder()
+                    .message(coupon.getCurrentAmount()+"번째 사용자 발급 완료")
+                    .issuedAt(userCoupon.getCreatedAt())
+                    .expiredAt(userCoupon.getExpiredAt())
+                    .build();
+        }
+        else{
+            return UserCouponRes.IssueCouponDto.builder()
+                    .message("쿠폰이 모두 소진되었습니다.")
+                    .issuedAt(null)
+                    .expiredAt(null)
+                    .build();
+        }
     }
 }
