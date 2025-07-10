@@ -5,11 +5,32 @@ import com.example.community.domain.user.entity.User;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface PostRepository extends JpaRepository<Post, Long>,PostRepositoryCustom {
-    List<Post> findAllByUser(User user);
+    @Query("select p from Post p join fetch p.user where p.user = :user")
+    List<Post> findAllByUserWithUser(@Param("user") User user);
 
-    Page<Post> findByTitleContaining(String keyword, Pageable pageable);
+    @Query(
+            value = """
+        SELECT DISTINCT p
+        FROM Post p
+        JOIN FETCH p.user
+        WHERE p.title LIKE CONCAT('%', :keyword, '%')
+        """,
+            countQuery = """
+        SELECT COUNT(p)
+        FROM Post p
+        WHERE p.title LIKE CONCAT('%', :keyword, '%')
+        """
+    )
+    Page<Post> findByTitleContainingWithUser(@Param("keyword") String keyword, Pageable pageable);
+
+
+    @Query("select p from Post p join fetch p.user where p.id = :postId")
+    Optional<Post> findByIdWithUser(@Param("postId") Long postId);
 }

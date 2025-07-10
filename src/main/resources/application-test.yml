@@ -1,0 +1,21 @@
+spring:
+  datasource:
+    url: jdbc:mysql://localhost:3306/testdb
+    username: root  # 👉 본인의 MySQL 사용자 이름
+    password: 3382149m!  # 👉 본인의 MySQL 비밀번호
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: create-drop  # 테스트 후 자동 삭제됨
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQL8Dialect
+        format_sql: true
+    show-sql: true
+
+  # 선택: SQL 실행 로그 이쁘게 보기
+  logging:
+    level:
+      org.hibernate.SQL: debug
+      org.hibernate.type.descriptor.sql.BasicBinder: trace

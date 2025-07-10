@@ -89,7 +89,7 @@ public class PostService {
     }
 
     public PostRes.GetPostDetailDto getPostDetail(PostReq.GetPostDetailDto getPostDetailDto) {
-        Post post = postRepository.findById(getPostDetailDto.getPostId()).orElseThrow(()->new RuntimeException("해당 게시물을 찾을 수 없습니다."));
+        Post post = postRepository.findByIdWithUser(getPostDetailDto.getPostId()).orElseThrow(()->new RuntimeException("해당 게시물을 찾을 수 없습니다."));
         post.increaseViewCount();
         List<CommentRes.CommentDto> comments =  commentRepository.findAllByPostId(post.getId()).stream()
                 .map(CommentRes::toCommentDto)
@@ -113,12 +113,12 @@ public class PostService {
 
     // 카테고리별
     public Page<PostRes.PostPreviewDto> getPostList(PostReq.GetPostListDto getPostListDto) {
-        return postRepository.getPosts(getPostListDto).map(PostRes::toPostPreviewDto);
+        return postRepository.getPostsWithUser(getPostListDto).map(PostRes::toPostPreviewDto);
     }
 
     public List<PostRes.PostPreviewDto> getMyPostList(String username) {
         User user = userRepository.findByUsername(username).orElseThrow(()->new RuntimeException("해당 사용자를 찾을 수 없습니다."));
-        return postRepository.findAllByUser(user).stream().map(PostRes::toPostPreviewDto).toList();
+        return postRepository.findAllByUserWithUser(user).stream().map(PostRes::toPostPreviewDto).toList();
     }
 
     public Page<PostRes.PostPreviewDto> searchPostList(PostReq.SearchPostListDto savePostListDto) {
@@ -129,6 +129,6 @@ public class PostService {
             sort = Sort.by(Sort.Direction.DESC, "createdAt"); // 최신순 (기본값)
         }
         Pageable pageable = PageRequest.of(savePostListDto.getPage(), savePostListDto.getPageSize(), sort);
-        return postRepository.findByTitleContaining(savePostListDto.getKeyword(), pageable).map(PostRes::toPostPreviewDto);
+        return postRepository.findByTitleContainingWithUser(savePostListDto.getKeyword(), pageable).map(PostRes::toPostPreviewDto);
     }
 }

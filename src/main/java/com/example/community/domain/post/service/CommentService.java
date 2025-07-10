@@ -52,7 +52,7 @@ public class CommentService {
 
     public List<CommentRes.CommentDto> getMyCommentList(String username) {
         User user = userRepository.findByUsername(username).orElseThrow(()->new RuntimeException("해당 사용자를 찾을 수 없습니다."));
-        return commentRepository.findAllByUser(user).stream().map(CommentRes::toCommentDto).toList();
+        return commentRepository.findAllByUserWithUser(user).stream().map(CommentRes::toCommentDto).toList();
 
     }
 }

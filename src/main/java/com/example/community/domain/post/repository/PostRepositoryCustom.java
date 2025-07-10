@@ -5,5 +5,5 @@ import com.example.community.domain.post.entity.Post;
 import org.springframework.data.domain.Page;
 
 public interface PostRepositoryCustom {
-    Page<Post> getPosts(PostReq.GetPostListDto getPostListDto);
+    Page<Post> getPostsWithUser(PostReq.GetPostListDto getPostListDto);
 }

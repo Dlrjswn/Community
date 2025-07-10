@@ -58,7 +58,7 @@ public class UserCouponService {
     }
 
     public UserCouponRes.UseCouponDto useCoupon(String username, UserCouponReq.UseCouponDto useCouponDto) {
-        UserCoupon userCoupon = userCouponRepository.findByUsernameAndCouponId(username, useCouponDto.getCouponId()).orElseThrow(()->new RuntimeException("해당 발급 쿠폰을 찾을 수 없습니다."));
+        UserCoupon userCoupon = userCouponRepository.findByUsernameAndCouponIdWithUserAndCoupon(username, useCouponDto.getCouponId()).orElseThrow(()->new RuntimeException("해당 발급 쿠폰을 찾을 수 없습니다."));
         if(userCoupon.getIsUsed()){
             return UserCouponRes.UseCouponDto.builder()
                     .isUsed(userCoupon.getIsUsed())
