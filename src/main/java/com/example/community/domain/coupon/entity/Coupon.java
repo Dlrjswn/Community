@@ -8,7 +8,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.springframework.data.auditing.config.AuditingConfiguration;
 
-import java.time.LocalDate;
+
+import java.time.LocalDateTime;
 
 @Entity
 @Builder

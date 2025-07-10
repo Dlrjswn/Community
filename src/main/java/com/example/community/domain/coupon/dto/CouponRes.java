@@ -11,7 +11,6 @@ public class CouponRes {
     @Builder
     public static class CreateCouponDto{
         private LocalDateTime createdAt;
-        private LocalDateTime expiredAt;
         private boolean isActive;
     }
 }

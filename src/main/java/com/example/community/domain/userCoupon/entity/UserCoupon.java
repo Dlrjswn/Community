@@ -2,6 +2,7 @@ package com.example.community.domain.userCoupon.entity;
 
 import com.example.community.domain.coupon.entity.Coupon;
 import com.example.community.domain.user.entity.User;
+import com.example.community.global.common.BaseEntity;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -9,6 +10,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 
 @Entity
@@ -16,7 +18,7 @@ import java.time.LocalDate;
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter
-public class UserCoupon {
+public class UserCoupon extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -25,10 +27,10 @@ public class UserCoupon {
     @Column(nullable = false)
     private Boolean isUsed;
 
-    private LocalDate usedAt;
+    private LocalDateTime usedAt;
 
     @Column(nullable = false)
-    private LocalDate expiredAt;
+    private LocalDateTime expiredAt;
 
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)

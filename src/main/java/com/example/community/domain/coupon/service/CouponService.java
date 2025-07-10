@@ -28,7 +28,6 @@ public class CouponService {
         couponRepository.save(coupon);
         return  CouponRes.CreateCouponDto.builder()
                 .createdAt(coupon.getCreatedAt())
-                .expiredAt(coupon.getCreatedAt().plusDays(coupon.getValidDays()))
                 .isActive(coupon.getIsActive())
                 .build();
 
