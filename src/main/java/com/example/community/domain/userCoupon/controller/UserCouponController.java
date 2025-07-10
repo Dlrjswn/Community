@@ -7,10 +7,7 @@ import com.example.community.global.common.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 
 @RestController
@@ -23,5 +20,10 @@ public class UserCouponController {
     @PostMapping("/issue")
     public ApiResponse<UserCouponRes.IssueCouponDto> issueCoupon(@AuthenticationPrincipal UserDetails userDetails, @RequestBody UserCouponReq.IssueCouponDto issueCouponDto ) {
         return ApiResponse.onSuccess(userCouponService.issueCoupon(userDetails.getUsername(), issueCouponDto));
+    }
+
+    @PatchMapping("/use")
+    public ApiResponse<UserCouponRes.UseCouponDto> useCoupon(@AuthenticationPrincipal UserDetails userDetails, @RequestBody UserCouponReq.UseCouponDto useCouponDto ) {
+        return ApiResponse.onSuccess(userCouponService.useCoupon(userDetails.getUsername(),useCouponDto));
     }
 }

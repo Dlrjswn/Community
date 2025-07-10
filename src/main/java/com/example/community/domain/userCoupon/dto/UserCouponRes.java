@@ -15,4 +15,13 @@ public class UserCouponRes {
         private LocalDateTime expiredAt;
     }
 
+    @Getter
+    @Builder
+    public static class UseCouponDto{
+        private String message;
+        private boolean isUsed;
+        private LocalDateTime usedAt;
+
+    }
+
 }

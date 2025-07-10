@@ -8,4 +8,9 @@ public class UserCouponReq {
     public static class IssueCouponDto{
         private Long couponId;
     }
+
+    @Getter
+    public static class UseCouponDto{
+        private Long couponId;
+    }
 }

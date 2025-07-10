@@ -40,4 +40,9 @@ public class UserCoupon extends BaseEntity {
     @JoinColumn(name = "coupon_id",nullable = false)
     private Coupon coupon;
 
+    public void useCoupon(LocalDateTime now) {
+        this.usedAt = now;
+        this.isUsed = true;
+    }
+
 }
