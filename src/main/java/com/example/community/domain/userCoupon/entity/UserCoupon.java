@@ -18,6 +18,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter
+@Table(uniqueConstraints = @UniqueConstraint(columnNames = {"user_id", "coupon_id"}))
 public class UserCoupon extends BaseEntity {
 
     @Id

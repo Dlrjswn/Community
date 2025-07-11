@@ -1,5 +1,7 @@
 package com.example.community.domain.userCoupon.repository;
 
+import com.example.community.domain.coupon.entity.Coupon;
+import com.example.community.domain.user.entity.User;
 import com.example.community.domain.userCoupon.entity.UserCoupon;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -14,4 +16,6 @@ public interface UserCouponRepository extends JpaRepository<UserCoupon, Long> {
             "WHERE u.username = :username AND c.id = :couponId")
     Optional<UserCoupon> findByUsernameAndCouponIdWithUserAndCoupon(@Param("username") String username,
                                                    @Param("couponId") Long couponId);
+
+    boolean existsByUserAndCoupon(User user, Coupon coupon);
 }
