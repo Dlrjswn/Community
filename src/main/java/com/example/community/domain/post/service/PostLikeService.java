@@ -1,10 +1,10 @@
 package com.example.community.domain.post.service;
 
-import com.example.community.domain.post.dto.LikeReq;
-import com.example.community.domain.post.dto.LikeRes;
-import com.example.community.domain.post.entity.Like;
+import com.example.community.domain.post.dto.PostLikeReq;
+import com.example.community.domain.post.dto.PostLikeRes;
+import com.example.community.domain.post.entity.PostLike;
 import com.example.community.domain.post.entity.Post;
-import com.example.community.domain.post.repository.LikeRepository;
+import com.example.community.domain.post.repository.PostLikeRepository;
 import com.example.community.domain.post.repository.PostRepository;
 import com.example.community.domain.user.entity.User;
 import com.example.community.domain.user.repository.UserRepository;
@@ -15,31 +15,31 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @Transactional
 @RequiredArgsConstructor
-public class LikeService {
-    private final LikeRepository likeRepository;
+public class PostLikeService {
+    private final PostLikeRepository postLikeRepository;
     private final PostRepository postRepository;
     private final UserRepository userRepository;
 
-    public LikeRes.LikePostDto likePost(LikeReq.LikePostDto likePostDto, String username) {
+    public PostLikeRes.LikePostDto likePost(PostLikeReq.LikePostDto likePostDto, String username) {
         Post post = postRepository.findById(likePostDto.getPostId()).orElseThrow(()->new RuntimeException("해당 게시물을 찾을 수 없습니다."));
         User user = userRepository.findByUsername(username).orElseThrow(()->new RuntimeException("해당 사용자를 찾을 수 없습니다."));
 
 
-        if(likeRepository.existsByUserAndPost(user,post)){
-            return LikeRes.LikePostDto.builder()
+        if(postLikeRepository.existsByUserAndPost(user,post)){
+            return PostLikeRes.LikePostDto.builder()
                     .message("이미 좋아요를 눌렀습니다.")
                     .build();
         }
         else {
-            Like like = Like.builder()
+            PostLike like = PostLike.builder()
                     .post(post)
                     .user(user)
                     .build();
-            likeRepository.save(like);
+            postLikeRepository.save(like);
 
             post.increaseLikeCount();
 
-            return LikeRes.LikePostDto.builder()
+            return PostLikeRes.LikePostDto.builder()
                     .message("좋아요 +1")
                     .build();
         }

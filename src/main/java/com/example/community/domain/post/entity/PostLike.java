@@ -15,7 +15,8 @@ import org.springframework.data.auditing.config.AuditingConfiguration;
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter
-public class Like extends BaseEntity {
+@Table(uniqueConstraints = @UniqueConstraint(columnNames = {"user_id", "post_id"}))
+public class PostLike extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

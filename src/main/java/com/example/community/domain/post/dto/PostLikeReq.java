@@ -3,12 +3,10 @@ package com.example.community.domain.post.dto;
 import lombok.Builder;
 import lombok.Getter;
 
-import java.time.LocalDateTime;
-
-public class LikeRes {
-    @Getter
+public class PostLikeReq {
     @Builder
+    @Getter
     public static class LikePostDto{
-        private String message;
+        private Long postId;
     }
 }
