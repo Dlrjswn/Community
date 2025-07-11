@@ -41,7 +41,4 @@ public class Coupon extends BaseEntity {
     @Column(nullable = false)
     private int currentAmount;
 
-    public void increaseCurrentAmount() {
-        this.currentAmount++;
-    }
 }

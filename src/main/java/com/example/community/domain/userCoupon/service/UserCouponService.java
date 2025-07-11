@@ -23,10 +23,12 @@ public class UserCouponService {
     private final UserCouponRepository userCouponRepository;
     private final CouponRepository couponRepository;
     private final UserRepository userRepository;
+    private static final int MAX_RETRY = 3;
 
     public UserCouponRes.IssueCouponDto issueCoupon(String username, UserCouponReq.IssueCouponDto issueCouponDto) {
+        Long couponId = issueCouponDto.getCouponId();
         User user = userRepository.findByUsername(username).orElseThrow(() -> new RuntimeException("해당 사용자를 찾을 수 없습니다."));
-        Coupon coupon = couponRepository.findById(issueCouponDto.getCouponId()).orElseThrow(() -> new RuntimeException("해당 쿠폰을 찾을 수 없습니다."));
+        Coupon coupon = couponRepository.findById(couponId).orElseThrow(() -> new RuntimeException("해당 쿠폰을 찾을 수 없습니다."));
 
         if(userCouponRepository.existsByUserAndCoupon(user,coupon)){
             return UserCouponRes.IssueCouponDto.builder()
@@ -35,36 +37,41 @@ public class UserCouponService {
                     .expiredAt(null)
                     .build();
         }
-        else {
+        int attempt = 0;
+        while (attempt++ < MAX_RETRY) {
+            int updated = couponRepository.increaseCurrentAmountSafely(couponId);
 
-            if (coupon.getMaxAmount() > coupon.getCurrentAmount()) {
-                coupon.increaseCurrentAmount();
-
-                UserCoupon userCoupon = UserCoupon.builder()
-                        .user(user)
-                        .coupon(coupon)
-                        .expiredAt(LocalDateTime.now().plusDays(coupon.getValidDays()))
-                        .isUsed(false)
-                        .usedAt(null)
-                        .build();
-
-                userCouponRepository.save(userCoupon);
-
-
+            if (updated == 1) {
+                // 성공했으니 발급 엔티티 저장
+                UserCoupon userCoupon = userCouponRepository.save(
+                        UserCoupon.builder()
+                                .user(user)
+                                .coupon(coupon)      // coupon은 proxy이어도 무방
+                                .expiredAt(LocalDateTime.now()
+                                        .plusDays(coupon.getValidDays()))
+                                .isUsed(false)
+                                .build()
+                );
                 return UserCouponRes.IssueCouponDto.builder()
-                        .message(coupon.getCurrentAmount() + "번째 사용자 발급 완료")
+                        .message("쿠폰 발급 완료")
                         .issuedAt(userCoupon.getCreatedAt())
                         .expiredAt(userCoupon.getExpiredAt())
                         .build();
-            } else {
-                return UserCouponRes.IssueCouponDto.builder()
-                        .message("쿠폰이 모두 소진되었습니다.")
-                        .issuedAt(null)
-                        .expiredAt(null)
-                        .build();
+
             }
+
+            // 실패 시 짧게 대기 후 재시도 (백오프 전략 가능)
+            try { Thread.sleep(30); } catch (InterruptedException ignored) {}
         }
+
+        // 재시도 모두 실패 → 수량 소진으로 판단
+        return UserCouponRes.IssueCouponDto.builder()
+                .issuedAt(null)
+                .expiredAt(null)
+                .message("수량이 모두 소진되었습니다.")
+                .build();
     }
+
 
     public UserCouponRes.UseCouponDto useCoupon(String username, UserCouponReq.UseCouponDto useCouponDto) {
         UserCoupon userCoupon = userCouponRepository.findByUsernameAndCouponIdWithUserAndCoupon(username, useCouponDto.getCouponId()).orElseThrow(()->new RuntimeException("해당 발급 쿠폰을 찾을 수 없습니다."));
