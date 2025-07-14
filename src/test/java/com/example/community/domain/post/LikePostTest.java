@@ -35,7 +35,7 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
         private UserRepository userRepository;
 
         @Autowired
-        private PostLikeService likeService;
+        private PostLikeService postLikeService;
 
         private final int threadCount = 300;
         private Post post;
@@ -86,7 +86,7 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
                 executorService.submit(() -> {
                     try {
                         String username = "user" + userId;
-                        likeService.likePost(PostLikeReq.LikePostDto.builder().postId(post.getId()).build(), username);
+                        postLikeService.likePost(PostLikeReq.LikePostDto.builder().postId(post.getId()).build(), username);
                     } catch (Exception e) {
                         System.out.println("좋아요 실패: " + e.getMessage());
                     } finally {
