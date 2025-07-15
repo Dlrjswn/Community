@@ -45,7 +45,6 @@ public class PostReq {
         private String keyword;
         private int page;
         private int pageSize;
-        private String sort; //"like" or "latest"
     }
 
 

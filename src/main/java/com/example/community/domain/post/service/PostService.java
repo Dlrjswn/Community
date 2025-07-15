@@ -122,13 +122,11 @@ public class PostService {
     }
 
     public Page<PostRes.PostPreviewDto> searchPostList(PostReq.SearchPostListDto savePostListDto) {
-        Sort sort;
-        if ("like".equalsIgnoreCase(savePostListDto.getSort())) {
-            sort = Sort.by(Sort.Direction.DESC, "likeCount"); // 좋아요순
-        } else {
-            sort = Sort.by(Sort.Direction.DESC, "createdAt"); // 최신순 (기본값)
-        }
-        Pageable pageable = PageRequest.of(savePostListDto.getPage(), savePostListDto.getPageSize(), sort);
+        Pageable pageable = PageRequest.of(
+                savePostListDto.getPage(),
+                savePostListDto.getPageSize(),
+                Sort.by(Sort.Direction.DESC, "createdAt")
+        );
         return postRepository.findByTitleContainingWithUser(savePostListDto.getKeyword(), pageable).map(PostRes::toPostPreviewDto);
     }
 }
