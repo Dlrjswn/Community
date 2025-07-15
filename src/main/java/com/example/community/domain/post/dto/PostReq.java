@@ -1,6 +1,6 @@
 package com.example.community.domain.post.dto;
 
-import lombok.Builder;
+
 import lombok.Getter;
 
 import java.util.List;
@@ -31,7 +31,6 @@ public class PostReq {
     }
 
     @Getter
-    @Builder
     public static class GetPostListDto{
         private String category;
         private int page;
@@ -40,7 +39,6 @@ public class PostReq {
 
     }
 
-    @Builder
     @Getter
     public static class SearchPostListDto{
         private String keyword;
