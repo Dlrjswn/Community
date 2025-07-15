@@ -1,5 +1,7 @@
 package com.example.community.domain.post.repository;
 
+import com.example.community.domain.post.dto.PostPreviewProjection;
+import com.example.community.domain.post.dto.PostRes;
 import com.example.community.domain.post.entity.Post;
 import com.example.community.domain.user.entity.User;
 import jakarta.persistence.LockModeType;
@@ -20,18 +22,27 @@ public interface PostRepository extends JpaRepository<Post, Long>,PostRepository
 
     @Query(
             value = """
-        SELECT DISTINCT p
-        FROM Post p
-        JOIN FETCH p.user
-        WHERE p.title LIKE CONCAT('%', :keyword, '%')
+        SELECT
+            p.id AS postId,
+            u.nickname AS nickname,
+            p.category AS category,
+            p.title AS title,
+            p.like_count AS likeCount,
+            p.view_count AS viewCount,
+            p.created_at AS createdAt
+        FROM post p
+        JOIN user u ON p.user_id = u.id
+        WHERE MATCH(p.title) AGAINST (:keyword IN NATURAL LANGUAGE MODE)
+        ORDER BY p.created_at DESC
         """,
             countQuery = """
-        SELECT COUNT(p)
-        FROM Post p
-        WHERE p.title LIKE CONCAT('%', :keyword, '%')
-        """
+        SELECT COUNT(*)
+        FROM post p
+        WHERE MATCH(p.title) AGAINST (:keyword IN NATURAL LANGUAGE MODE)
+        """,
+            nativeQuery = true
     )
-    Page<Post> findByTitleContainingWithUser(@Param("keyword") String keyword, Pageable pageable);
+    Page<PostPreviewProjection> findByTitleContainingWithUser(@Param("keyword") String keyword, Pageable pageable);
 
 
     @Query("select p from Post p join fetch p.user where p.id = :postId")

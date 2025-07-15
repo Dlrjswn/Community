@@ -1,6 +1,7 @@
 package com.example.community.domain.post.service;
 
 import com.example.community.domain.post.dto.CommentRes;
+import com.example.community.domain.post.dto.PostPreviewProjection;
 import com.example.community.domain.post.dto.PostReq;
 import com.example.community.domain.post.dto.PostRes;
 import com.example.community.domain.post.entity.Category;
@@ -124,8 +125,7 @@ public class PostService {
     public Page<PostRes.PostPreviewDto> searchPostList(PostReq.SearchPostListDto savePostListDto) {
         Pageable pageable = PageRequest.of(
                 savePostListDto.getPage(),
-                savePostListDto.getPageSize(),
-                Sort.by(Sort.Direction.DESC, "createdAt")
+                savePostListDto.getPageSize()
         );
         return postRepository.findByTitleContainingWithUser(savePostListDto.getKeyword(), pageable).map(PostRes::toPostPreviewDto);
     }

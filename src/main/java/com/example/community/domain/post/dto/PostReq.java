@@ -40,6 +40,7 @@ public class PostReq {
 
     }
 
+    @Builder
     @Getter
     public static class SearchPostListDto{
         private String keyword;

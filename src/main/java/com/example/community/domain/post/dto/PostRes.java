@@ -51,6 +51,7 @@ public class PostRes {
         private LocalDateTime createdAt;
     }
 
+
     public static PostPreviewDto toPostPreviewDto(Post post){
         return PostPreviewDto.builder()
                 .postId(post.getId())
@@ -60,6 +61,18 @@ public class PostRes {
                 .likeCount(post.getLikeCount())
                 .viewCount(post.getViewCount())
                 .createdAt(post.getCreatedAt())
+                .build();
+    }
+
+    public static PostPreviewDto toPostPreviewDto(PostPreviewProjection projection){
+        return PostPreviewDto.builder()
+                .postId(projection.getPostId())
+                .nickname(projection.getNickname())
+                .category(projection.getCategory())
+                .title(projection.getTitle())
+                .likeCount(projection.getLikeCount())
+                .viewCount(projection.getViewCount())
+                .createdAt(projection.getCreatedAt())
                 .build();
     }
 
