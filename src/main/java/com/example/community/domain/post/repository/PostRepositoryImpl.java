@@ -1,6 +1,7 @@
 package com.example.community.domain.post.repository;
 
 import com.example.community.domain.post.dto.PostReq;
+import com.example.community.domain.post.entity.Category;
 import com.example.community.domain.post.entity.Post;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.TypedQuery;
@@ -38,7 +39,13 @@ public class PostRepositoryImpl implements PostRepositoryCustom {
         if (dto.getCategory() != null && !dto.getCategory().isBlank()) {
             jpql.append(" AND p.category = :category");
             countJpql.append(" AND p.category = :category");
-            params.put("category", dto.getCategory());
+
+            try {
+                Category categoryEnum = Category.valueOf(dto.getCategory().toUpperCase());
+                params.put("category", categoryEnum); // ✅ 여기가 핵심!
+            } catch (IllegalArgumentException e) {
+                throw new RuntimeException("존재하지 않는 카테고리입니다: " + dto.getCategory());
+            }
         }
 
         // ▸ 정렬

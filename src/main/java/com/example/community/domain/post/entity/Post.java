@@ -15,6 +15,13 @@ import org.springframework.data.auditing.config.AuditingConfiguration;
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter
+@Table(
+        name = "post",
+        indexes = {
+                @Index(name = "idx_post_category_createdAt", columnList = "category, created_at"),
+                @Index(name = "idx_post_category_likeCount", columnList = "category, like_count")
+        }
+)
 public class Post extends BaseEntity {
 
     @Id
