@@ -13,15 +13,18 @@ import com.example.community.domain.post.repository.PostImageRepository;
 import com.example.community.domain.post.repository.PostRepository;
 import com.example.community.domain.user.entity.User;
 import com.example.community.domain.user.repository.UserRepository;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 @Service
 @Transactional
@@ -32,6 +35,10 @@ public class PostService {
     private final PostRepository postRepository;
     private final PostImageRepository postImageRepository;
     private final CommentRepository commentRepository;
+
+    private final StringRedisTemplate redisTemplate;
+
+    private static final long EXPIRE_SECONDS = 60 * 5;
 
     public PostRes.SavePostDto savePost(String username, PostReq.SavePostDto savePostDto) {
         User user = userRepository.findByUsername(username).orElseThrow(()-> new RuntimeException("해당 사용자를 찾을 수 없습니다."));
@@ -90,9 +97,9 @@ public class PostService {
 
     }
 
-    public PostRes.GetPostDetailDto getPostDetail(PostReq.GetPostDetailDto getPostDetailDto) {
+    public PostRes.GetPostDetailDto getPostDetail(PostReq.GetPostDetailDto getPostDetailDto, HttpServletRequest request) {
         Post post = postRepository.findByIdWithUser(getPostDetailDto.getPostId()).orElseThrow(()->new RuntimeException("해당 게시물을 찾을 수 없습니다."));
-        post.increaseViewCount();
+        increaseViewCountByIp(post.getId(), request);
         Pageable pageable = PageRequest.of(0,20,Sort.by("createdAt").descending());
         Page<Comment> commentPage =  commentRepository.findByPostIdWithUser(post.getId(),pageable);
         List<CommentRes.CommentDto> comments = commentPage.getContent().stream().map(CommentRes::toCommentDto).toList();
@@ -112,6 +119,26 @@ public class PostService {
                 .imageUrls(imageUrls)
                 .comments(comments)
                 .build();
+    }
+
+   public void increaseViewCountByIp(Long postId, HttpServletRequest request) {
+        String ip = extractClientIp(request);
+        String key = "viewed:ip:" + ip + ":" + postId;
+
+        if (Boolean.TRUE.equals(redisTemplate.hasKey(key))) {
+            return; // 이미 조회한 기록 있음
+        }
+
+        redisTemplate.opsForValue().set(key, "1", EXPIRE_SECONDS, TimeUnit.SECONDS); // 5분 중복 방지
+        redisTemplate.opsForValue().increment("post:views:" + postId); // 조회수 증가
+    }
+
+    private String extractClientIp(HttpServletRequest request) {
+        String forwarded = request.getHeader("X-Forwarded-For");
+        if (forwarded != null && !forwarded.isEmpty()) {
+            return forwarded.split(",")[0];
+        }
+        return request.getRemoteAddr();
     }
 
     // 카테고리별

@@ -51,4 +51,8 @@ public interface PostRepository extends JpaRepository<Post, Long>,PostRepository
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT p FROM Post p WHERE p.id = :postId")
     Optional<Post> findByIdForUpdate(@Param("postId") Long postId);
+
+    @Modifying
+    @Query("UPDATE Post p SET p.viewCount = p.viewCount + :count WHERE p.id = :postId")
+    void increaseViewCount(@Param("postId") Long postId, @Param("count") Integer count);
 }

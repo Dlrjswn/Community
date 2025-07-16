@@ -4,6 +4,7 @@ import com.example.community.domain.post.dto.PostReq;
 import com.example.community.domain.post.dto.PostRes;
 import com.example.community.domain.post.service.PostService;
 import com.example.community.global.common.ApiResponse;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -32,8 +33,8 @@ public class PostController {
     }
 
     @GetMapping("/detail")
-    public ApiResponse<PostRes.GetPostDetailDto> getPostDetail(@RequestBody PostReq.GetPostDetailDto getPostDetailDto) {
-        return ApiResponse.onSuccess(postService.getPostDetail(getPostDetailDto));
+    public ApiResponse<PostRes.GetPostDetailDto> getPostDetail(@RequestBody PostReq.GetPostDetailDto getPostDetailDto, HttpServletRequest request) {
+        return ApiResponse.onSuccess(postService.getPostDetail(getPostDetailDto, request));
     }
 
     @GetMapping("/list")
