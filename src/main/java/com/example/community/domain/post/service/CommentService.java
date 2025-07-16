@@ -10,6 +10,10 @@ import com.example.community.domain.post.repository.PostRepository;
 import com.example.community.domain.user.entity.User;
 import com.example.community.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -54,5 +58,13 @@ public class CommentService {
         User user = userRepository.findByUsername(username).orElseThrow(()->new RuntimeException("해당 사용자를 찾을 수 없습니다."));
         return commentRepository.findAllByUserWithUser(user).stream().map(CommentRes::toCommentDto).toList();
 
+    }
+
+
+    public Page<CommentRes.CommentDto> getCommentList(CommentReq.GetCommentDto getCommentDto) {
+        Post post = postRepository.findById(getCommentDto.getPostId()).orElseThrow(()-> new RuntimeException("해당 게시물을 찾을 수 없습니다."));
+        Pageable pageable = PageRequest.of(getCommentDto.getPage(),getCommentDto.getPageSize(), Sort.by("createdAt").descending());
+
+        return commentRepository.findByPostIdWithUser(post.getId(),pageable).map(CommentRes::toCommentDto);
     }
 }

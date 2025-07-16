@@ -5,6 +5,7 @@ import com.example.community.domain.post.dto.CommentRes;
 import com.example.community.domain.post.service.CommentService;
 import com.example.community.global.common.ApiResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
@@ -31,5 +32,10 @@ public class CommentController {
     @GetMapping("/my-comment")
     public ApiResponse<List<CommentRes.CommentDto>> getMyCommentList(@AuthenticationPrincipal UserDetails userDetails) {
         return ApiResponse.onSuccess(commentService.getMyCommentList(userDetails.getUsername()));
+    }
+
+    @GetMapping("/list")
+    public ApiResponse<Page<CommentRes.CommentDto>> getCommentList(@RequestBody CommentReq.GetCommentDto getCommentDto) {
+        return ApiResponse.onSuccess(commentService.getCommentList(getCommentDto));
     }
 }

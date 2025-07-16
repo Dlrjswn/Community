@@ -15,4 +15,11 @@ public class CommentReq {
         private Long commentId;
         private String content;
     }
+
+    @Getter
+    public static class GetCommentDto{
+        private Long postId;
+        private int page;
+        private int pageSize;
+    }
 }
