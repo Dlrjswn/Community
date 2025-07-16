@@ -5,6 +5,7 @@ import com.example.community.domain.post.dto.PostPreviewProjection;
 import com.example.community.domain.post.dto.PostReq;
 import com.example.community.domain.post.dto.PostRes;
 import com.example.community.domain.post.entity.Category;
+import com.example.community.domain.post.entity.Comment;
 import com.example.community.domain.post.entity.Post;
 import com.example.community.domain.post.entity.PostImage;
 import com.example.community.domain.post.repository.CommentRepository;
@@ -92,9 +93,9 @@ public class PostService {
     public PostRes.GetPostDetailDto getPostDetail(PostReq.GetPostDetailDto getPostDetailDto) {
         Post post = postRepository.findByIdWithUser(getPostDetailDto.getPostId()).orElseThrow(()->new RuntimeException("해당 게시물을 찾을 수 없습니다."));
         post.increaseViewCount();
-        List<CommentRes.CommentDto> comments =  commentRepository.findAllByPostId(post.getId()).stream()
-                .map(CommentRes::toCommentDto)
-                .toList();
+        Pageable pageable = PageRequest.of(getPostDetailDto.getPage(),getPostDetailDto.getPageSize(),Sort.by("createdAt").descending());
+        Page<Comment> commentPage =  commentRepository.findByPostIdWithUser(post.getId(),pageable);
+        List<CommentRes.CommentDto> comments = commentPage.getContent().stream().map(CommentRes::toCommentDto).toList();
         List<String> imageUrls = postImageRepository.findAllByPostId(post.getId()).stream().map(PostImage::getImageUrl).toList();
 
         return PostRes.GetPostDetailDto.builder()
@@ -104,7 +105,8 @@ public class PostService {
                 .content(post.getContent())
                 .likeCount(post.getLikeCount())
                 .viewCount(post.getViewCount())
-                .commentCount(comments.size())
+                .totalCommentCount(commentPage.getTotalElements())
+                .totalCommentPageCount(commentPage.getTotalPages())
                 .createdAt(post.getCreatedAt())
                 .modifiedAt(post.getModifiedAt())
                 .imageUrls(imageUrls)

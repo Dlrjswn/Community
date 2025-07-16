@@ -28,6 +28,8 @@ public class PostReq {
     @Getter
     public static class GetPostDetailDto{
         private Long postId;
+        private int page;
+        private int pageSize;
     }
 
     @Getter

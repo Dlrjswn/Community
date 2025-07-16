@@ -31,7 +31,8 @@ public class PostRes {
         private String content;
         private int viewCount;
         private int likeCount;
-        private long commentCount;
+        private long totalCommentCount;
+        private int totalCommentPageCount;
         private LocalDateTime createdAt;
         private LocalDateTime modifiedAt;
         private List<String> imageUrls;
