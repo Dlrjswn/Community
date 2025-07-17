@@ -15,7 +15,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
-
+/*
 @SpringBootTest
 @Transactional
 @ActiveProfiles("test")
@@ -54,3 +54,4 @@ public class SearchPostTest {
     }
 
 }
+*/

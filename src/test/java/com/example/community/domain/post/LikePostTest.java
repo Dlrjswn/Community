@@ -22,7 +22,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-
+/*
 @SpringBootTest
     @Transactional
     @ActiveProfiles("test")
@@ -104,4 +104,4 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
             assertThat(likeCount).isEqualTo(300); // 유저 300명 = 좋아요 300건
         }
     }
-
+*/

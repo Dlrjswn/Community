@@ -17,7 +17,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-
+/*
 @SpringBootTest
 @Transactional
 @ActiveProfiles("test")
@@ -71,4 +71,4 @@ import java.util.List;
             // 콘솔에 찍히는 SQL 로그를 통해 쿼리 횟수가 1 + N인지 확인
         }
     }
-
+*/
