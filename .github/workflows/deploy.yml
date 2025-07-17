@@ -41,13 +41,10 @@ jobs:
           username: ${{ secrets.EC2_USERNAME }}
           key: ${{ secrets.EC2_KEY }}
           script: |
-            cat <<EOF > ~/app/.env
             cd ~/app
             docker stop my-app || true
             docker rm my-app || true
             docker run -d --name my-app -p 8080:8080 \
-              -e SPRING_DATASOURCE_URL= ${{ secrets.SPRING_DATASOURCE_URL }} \
-              -e SPRING_DATASOURCE_USERNAME=${{ secrets.SPRING_DATASOURCE_USERNAME }}  \
-              -e SPRING_DATASOURCE_PASSWORD=${{ secrets.SPRING_DATASOURCE_PASSWORD }} \
+              --env-file .env \
               -v ~/app/*.jar:/app.jar \
               openjdk:17 java -jar /app.jar
