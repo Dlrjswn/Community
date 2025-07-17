@@ -38,12 +38,3 @@ out/
 
 .env
 
-# Spring
-src/main/resources/application.yml
-src/main/resources/application-test.yml
-
-# Docker
-docker-compose.yml
-
-# GitHub Actions secrets를 참조할 파일
-.github/workflows/deploy.yml
