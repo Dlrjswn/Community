@@ -34,8 +34,11 @@ jobs:
           echo "SPRING_DATASOURCE_PASSWORD=${{ secrets.SPRING_DATASOURCE_PASSWORD }}" >> .env
           echo "SPRING_DATASOURCE_URL=${{ secrets.SPRING_DATASOURCE_URL }}" >> .env
 
-      - name: Check .env file
-        run: cat .env
+      - name: Check .env location and content
+        run: |
+          pwd
+          ls -al .env
+          cat .env
 
       - name: ✅ Validate build and env files exist
         run: |
