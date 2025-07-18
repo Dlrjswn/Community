@@ -25,11 +25,17 @@ jobs:
       - name: Build with Gradle
         run: ./gradlew build
 
+      - name: Check build output
+        run: ls -al build/libs
+
       - name: Create .env file
         run: |
           echo "SPRING_DATASOURCE_USERNAME=${{ secrets.SPRING_DATASOURCE_USERNAME }}" >> .env
           echo "SPRING_DATASOURCE_PASSWORD=${{ secrets.SPRING_DATASOURCE_PASSWORD }}" >> .env
           echo "SPRING_DATASOURCE_URL=${{ secrets.SPRING_DATASOURCE_URL }}" >> .env
+
+      - name: Check .env file
+        run: cat .env
 
       - name: ✅ Validate build and env files exist
         run: |
