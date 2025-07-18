@@ -57,7 +57,7 @@ jobs:
           username: ${{ secrets.EC2_USERNAME }}
           key: ${{ secrets.EC2_KEY }}
           source: |
-            build/libs/*.jar
+            build/libs/community-0.0.1-SNAPSHOT.jar
             .env
           target: "~/app"
 
