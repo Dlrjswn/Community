@@ -31,6 +31,19 @@ jobs:
           echo "SPRING_DATASOURCE_PASSWORD=${{ secrets.SPRING_DATASOURCE_PASSWORD }}" >> .env
           echo "SPRING_DATASOURCE_URL=${{ secrets.SPRING_DATASOURCE_URL }}" >> .env
 
+      - name: ✅ Validate build and env files exist
+        run: |
+          if [ ! -f build/libs/*.jar ]; then
+            echo "❌ JAR file not found!"
+            ls -al build/libs
+            exit 1
+          fi
+          if [ ! -f .env ]; then
+            echo "❌ .env file not found!"
+            ls -al
+            exit 1
+          fi
+
       - name: Copy files to EC2
         uses: appleboy/scp-action@v0.1.4
         with:
