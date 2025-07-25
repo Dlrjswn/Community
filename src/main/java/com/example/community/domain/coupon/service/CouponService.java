@@ -22,8 +22,7 @@ public class CouponService {
                 .code(createCouponDto.getCode())
                 .isActive(true)
                 .validDays(createCouponDto.getValidDays())
-                .maxAmount(createCouponDto.getMaxAmount())
-                .currentAmount(0)
+                .amount(createCouponDto.getAmount())
                 .build();
         couponRepository.save(coupon);
         return  CouponRes.CreateCouponDto.builder()

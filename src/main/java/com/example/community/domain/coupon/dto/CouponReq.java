@@ -9,6 +9,6 @@ public class CouponReq {
         private String name;
         private String code;
         private int validDays;
-        private int maxAmount;
+        private int amount;
     }
 }

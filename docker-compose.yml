@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   app:
-    build: .
+    build: ../OneDrive/바탕 화면/다시 넣을거
     container_name: spring-app
     ports:
       - "8080:8080"

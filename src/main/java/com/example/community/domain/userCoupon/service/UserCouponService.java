@@ -23,7 +23,7 @@ public class UserCouponService {
     private final UserCouponRepository userCouponRepository;
     private final CouponRepository couponRepository;
     private final UserRepository userRepository;
-    private static final int MAX_RETRY = 3;
+
 
     public UserCouponRes.IssueCouponDto issueCoupon(String username, UserCouponReq.IssueCouponDto issueCouponDto) {
         Long couponId = issueCouponDto.getCouponId();
@@ -37,12 +37,7 @@ public class UserCouponService {
                     .expiredAt(null)
                     .build();
         }
-        int attempt = 0;
-        while (attempt++ < MAX_RETRY) {
-            int updated = couponRepository.increaseCurrentAmountSafely(couponId);
 
-            if (updated == 1) {
-                // 성공했으니 발급 엔티티 저장
                 UserCoupon userCoupon = userCouponRepository.save(
                         UserCoupon.builder()
                                 .user(user)
@@ -52,6 +47,9 @@ public class UserCouponService {
                                 .isUsed(false)
                                 .build()
                 );
+
+        couponRepository.decreaseAmount(couponId);
+
                 return UserCouponRes.IssueCouponDto.builder()
                         .message("쿠폰 발급 완료")
                         .issuedAt(userCoupon.getCreatedAt())
@@ -60,17 +58,7 @@ public class UserCouponService {
 
             }
 
-            // 실패 시 짧게 대기 후 재시도 (백오프 전략 가능)
-            try { Thread.sleep(30); } catch (InterruptedException ignored) {}
-        }
 
-        // 재시도 모두 실패 → 수량 소진으로 판단
-        return UserCouponRes.IssueCouponDto.builder()
-                .issuedAt(null)
-                .expiredAt(null)
-                .message("수량이 모두 소진되었습니다.")
-                .build();
-    }
 
 
     public UserCouponRes.UseCouponDto useCoupon(String username, UserCouponReq.UseCouponDto useCouponDto) {

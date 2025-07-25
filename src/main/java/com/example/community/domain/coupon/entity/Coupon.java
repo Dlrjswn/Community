@@ -36,9 +36,7 @@ public class Coupon extends BaseEntity {
     private int validDays;
 
     @Column(nullable = false)
-    private int maxAmount;
+    private int amount;
 
-    @Column(nullable = false)
-    private int currentAmount;
 
 }

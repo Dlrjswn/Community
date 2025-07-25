@@ -12,9 +12,9 @@ public interface CouponRepository extends JpaRepository<Coupon, Long> {
     @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query("""
         UPDATE Coupon c
-           SET c.currentAmount = c.currentAmount + 1
+           SET c.amount = c.amount - 1
          WHERE c.id = :couponId
-           AND c.currentAmount < c.maxAmount
+           AND c.amount > 0
     """)
-    int increaseCurrentAmountSafely(@Param("couponId") Long couponId);
+    int decreaseAmount(@Param("couponId") Long couponId);
 }
