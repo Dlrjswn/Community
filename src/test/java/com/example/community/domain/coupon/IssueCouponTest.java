@@ -52,6 +52,7 @@ public class IssueCouponTest {
         userRepository.flush();  // DB에 즉시 반영
     }
 
+
     @Test
     @Transactional(propagation = Propagation.NOT_SUPPORTED)  // 트랜잭션 끔
     void 동시에_쿠폰_요청_테스트() throws InterruptedException {
@@ -59,9 +60,8 @@ public class IssueCouponTest {
         Coupon coupon = couponRepository.save(Coupon.builder()
                 .name("치킨 쿠폰")
                 .code("1234")
-                .currentAmount(0)
+                .amount(300)
                 .isActive(true)
-                .maxAmount(100)
                 .validDays(7)
                 .build());
 
@@ -85,11 +85,11 @@ public class IssueCouponTest {
         latch.await();
         executorService.shutdown();
 
-        int usedCount = couponRepository.findById(coupon.getId()).get().getCurrentAmount();
-        System.out.println("사용된 쿠폰 수: " + usedCount);
+        int usedCount = couponRepository.findById(coupon.getId()).get().getAmount();
+        System.out.println("남은 쿠폰 수: " + usedCount);
 
         // then
-        assertThat(usedCount).isEqualTo(100); // 수량 초과 사용 방지
+        assertThat(usedCount).isEqualTo(0); // 수량 초과 사용 방지
     }
 }
 */

@@ -28,7 +28,7 @@ public class UserCouponService {
     public UserCouponRes.IssueCouponDto issueCoupon(String username, UserCouponReq.IssueCouponDto issueCouponDto) {
         Long couponId = issueCouponDto.getCouponId();
         User user = userRepository.findByUsername(username).orElseThrow(() -> new RuntimeException("해당 사용자를 찾을 수 없습니다."));
-        Coupon coupon = couponRepository.findById(couponId).orElseThrow(() -> new RuntimeException("해당 쿠폰을 찾을 수 없습니다."));
+        Coupon coupon = couponRepository.findByIdForUpdate(couponId).orElseThrow(() -> new RuntimeException("해당 쿠폰을 찾을 수 없습니다."));
 
         if(userCouponRepository.existsByUserAndCoupon(user,coupon)){
             return UserCouponRes.IssueCouponDto.builder()
@@ -37,6 +37,8 @@ public class UserCouponService {
                     .expiredAt(null)
                     .build();
         }
+
+        coupon.decreaseAmount();
 
                 UserCoupon userCoupon = userCouponRepository.save(
                         UserCoupon.builder()
@@ -48,7 +50,7 @@ public class UserCouponService {
                                 .build()
                 );
 
-        couponRepository.decreaseAmount(couponId);
+
 
                 return UserCouponRes.IssueCouponDto.builder()
                         .message("쿠폰 발급 완료")

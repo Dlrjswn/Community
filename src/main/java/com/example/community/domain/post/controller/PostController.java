@@ -33,8 +33,8 @@ public class PostController {
     }
 
     @GetMapping("/detail")
-    public ApiResponse<PostRes.GetPostDetailDto> getPostDetail(@RequestBody PostReq.GetPostDetailDto getPostDetailDto, HttpServletRequest request) {
-        return ApiResponse.onSuccess(postService.getPostDetail(getPostDetailDto, request));
+    public ApiResponse<PostRes.GetPostDetailDto> getPostDetail(@RequestBody PostReq.GetPostDetailDto getPostDetailDto) {
+        return ApiResponse.onSuccess(postService.getPostDetail(getPostDetailDto));
     }
 
     @GetMapping("/list")

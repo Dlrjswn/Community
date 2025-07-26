@@ -38,5 +38,8 @@ public class Coupon extends BaseEntity {
     @Column(nullable = false)
     private int amount;
 
+    public void decreaseAmount() {
+        this.amount -= 1;
+    }
 
 }

@@ -27,22 +27,22 @@ public interface PostRepository extends JpaRepository<Post, Long>,PostRepository
             u.nickname AS nickname,
             p.category AS category,
             p.title AS title,
-            p.like_count AS likeCount,
-            p.view_count AS viewCount,
-            p.created_at AS createdAt
-        FROM post p
-        JOIN user u ON p.user_id = u.id
-        WHERE MATCH(p.title) AGAINST (:keyword IN NATURAL LANGUAGE MODE)
-        ORDER BY p.created_at DESC
+            p.likeCount AS likeCount,
+            p.viewCount AS viewCount,
+            p.createdAt AS createdAt
+        FROM Post p
+        JOIN p.user u
+        WHERE p.title LIKE CONCAT('%', :keyword, '%')
+        ORDER BY p.createdAt DESC
         """,
             countQuery = """
-        SELECT COUNT(*)
-        FROM post p
-        WHERE MATCH(p.title) AGAINST (:keyword IN NATURAL LANGUAGE MODE)
-        """,
-            nativeQuery = true
+        SELECT COUNT(p)
+        FROM Post p
+        WHERE p.title LIKE CONCAT('%', :keyword, '%')
+        """
     )
     Page<PostPreviewProjection> findByTitleContainingWithUser(@Param("keyword") String keyword, Pageable pageable);
+
 
 
     @Query("select p from Post p join fetch p.user where p.id = :postId")
@@ -55,4 +55,8 @@ public interface PostRepository extends JpaRepository<Post, Long>,PostRepository
     @Modifying
     @Query("UPDATE Post p SET p.viewCount = p.viewCount + :count WHERE p.id = :postId")
     void increaseViewCount(@Param("postId") Long postId, @Param("count") Integer count);
+
+    @Modifying(clearAutomatically = true)
+    @Query("UPDATE Post p SET p.viewCount = p.viewCount + 1 WHERE p.id = :postId")
+    void incrementViewCount(@Param("postId") Long postId);
 }
