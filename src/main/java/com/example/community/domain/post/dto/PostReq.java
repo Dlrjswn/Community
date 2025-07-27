@@ -1,6 +1,7 @@
 package com.example.community.domain.post.dto;
 
 
+import lombok.Builder;
 import lombok.Getter;
 
 import java.util.List;
@@ -25,6 +26,7 @@ public class PostReq {
         private List<Long> removedImageIds;
     }
 
+    @Builder
     @Getter
     public static class GetPostDetailDto{
         private Long postId;

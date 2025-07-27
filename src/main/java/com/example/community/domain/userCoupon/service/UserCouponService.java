@@ -11,6 +11,7 @@ import com.example.community.domain.userCoupon.entity.UserCoupon;
 import com.example.community.domain.userCoupon.repository.UserCouponRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
@@ -25,6 +26,7 @@ public class UserCouponService {
     private final UserRepository userRepository;
 
 
+    @Transactional(isolation = Isolation.READ_COMMITTED)
     public UserCouponRes.IssueCouponDto issueCoupon(String username, UserCouponReq.IssueCouponDto issueCouponDto) {
         Long couponId = issueCouponDto.getCouponId();
         User user = userRepository.findByUsername(username).orElseThrow(() -> new RuntimeException("해당 사용자를 찾을 수 없습니다."));
@@ -37,6 +39,7 @@ public class UserCouponService {
                     .expiredAt(null)
                     .build();
         }
+        couponRepository.decreaseAmount(couponId);
 
                 UserCoupon userCoupon = userCouponRepository.save(
                         UserCoupon.builder()
@@ -48,7 +51,7 @@ public class UserCouponService {
                                 .build()
                 );
 
-        couponRepository.decreaseAmount(couponId);
+
 
                 return UserCouponRes.IssueCouponDto.builder()
                         .message("쿠폰 발급 완료")
