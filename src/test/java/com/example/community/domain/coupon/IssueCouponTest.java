@@ -32,22 +32,6 @@ public class IssueCouponTest {
     private UserCouponService userCouponService;
 
     private final int threadCount = 300;
-/*
-    @BeforeEach
-    void setUp() {
-        int userCount = 300;
-        for (int i = 1; i <= userCount; i++) {
-            User user = User.builder()
-                    .password("1234")
-                    .nickname("kim" + i)
-                    .username("kim" + i)
-                    .email("kim" + i + "@gmail.com")
-                    .role(Role.USER)
-                    .build();
-            userRepository.save(user);
-        }
-        userRepository.flush();  // DB에 즉시 반영
-    }
 
 
     @Test
@@ -58,7 +42,7 @@ public class IssueCouponTest {
                 .name("치킨 쿠폰")
                 .code("1234")
                 .isActive(true)
-                .amount(300)
+                .amount(200)
                 .validDays(7)
                 .build());
 
