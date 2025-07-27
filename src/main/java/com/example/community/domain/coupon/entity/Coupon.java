@@ -39,7 +39,9 @@ public class Coupon extends BaseEntity {
     private int amount;
 
     public void decreaseAmount() {
-        this.amount -= 1;
+        if(amount > 0) {
+            this.amount -= 1;
+        }
     }
 
 }

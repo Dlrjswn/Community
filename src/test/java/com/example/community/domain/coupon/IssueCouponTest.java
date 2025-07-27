@@ -20,6 +20,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+
 /*
 @SpringBootTest
 @ActiveProfiles("test")
@@ -36,21 +37,6 @@ public class IssueCouponTest {
 
     private final int threadCount = 300;
 
-    @BeforeEach
-    void setUp() {
-        int userCount = 300;
-        for (int i = 1; i <= userCount; i++) {
-            User user = User.builder()
-                    .password("1234")
-                    .nickname("kim" + i)
-                    .username("kim" + i)
-                    .email("kim" + i + "@gmail.com")
-                    .role(Role.USER)
-                    .build();
-            userRepository.save(user);
-        }
-        userRepository.flush();  // DB에 즉시 반영
-    }
 
 
     @Test
@@ -60,7 +46,7 @@ public class IssueCouponTest {
         Coupon coupon = couponRepository.save(Coupon.builder()
                 .name("치킨 쿠폰")
                 .code("1234")
-                .amount(300)
+                .amount(200)
                 .isActive(true)
                 .validDays(7)
                 .build());
