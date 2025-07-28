@@ -48,13 +48,15 @@ jobs:
           echo "SPRING_DATASOURCE_PASSWORD=${{ secrets.SPRING_DATASOURCE_PASSWORD }}" >> .env
           echo "SPRING_DATASOURCE_URL=${{ secrets.SPRING_DATASOURCE_URL }}" >> .env
 
-      - name: Copy files to EC2
+      - name: Copy JAR and .env to EC2
         uses: appleboy/scp-action@v0.1.4
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USERNAME }}
           key: ${{ secrets.EC2_KEY }}
-          source: "./build/libs/${{ steps.branch-info.outputs.jar_name }},.env"
+          source: |
+            build/libs/${{ steps.branch-info.outputs.jar_name }}
+            .env
           target: "~/app/${{ steps.branch-info.outputs.branch }}"
 
       - name: Remote SSH to EC2 - Run Docker
