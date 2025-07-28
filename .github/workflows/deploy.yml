@@ -2,12 +2,15 @@ name: Deploy to EC2
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, v1, v2 ]
   workflow_dispatch:
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
+
+    env:
+      JAR_BASE_NAME: community
 
     steps:
       - name: Checkout source
@@ -25,14 +28,25 @@ jobs:
       - name: Build with Gradle
         run: ./gradlew build
 
+      - name: Determine branch-based names
+        id: branch-info
+        run: |
+          BRANCH_NAME="${GITHUB_REF##*/}"
+          JAR_NAME="${{ env.JAR_BASE_NAME }}-${BRANCH_NAME}.jar"
+          CONTAINER_NAME="app-${BRANCH_NAME}"
+          echo "branch=$BRANCH_NAME" >> $GITHUB_OUTPUT
+          echo "jar_name=$JAR_NAME" >> $GITHUB_OUTPUT
+          echo "container_name=$CONTAINER_NAME" >> $GITHUB_OUTPUT
+
+      - name: Rename jar
+        run: |
+          mv build/libs/community-0.0.1-SNAPSHOT.jar build/libs/${{ steps.branch-info.outputs.jar_name }}
+
       - name: Create .env file
         run: |
           echo "SPRING_DATASOURCE_USERNAME=${{ secrets.SPRING_DATASOURCE_USERNAME }}" >> .env
           echo "SPRING_DATASOURCE_PASSWORD=${{ secrets.SPRING_DATASOURCE_PASSWORD }}" >> .env
           echo "SPRING_DATASOURCE_URL=${{ secrets.SPRING_DATASOURCE_URL }}" >> .env
-
-      - name: List build/libs contents
-        run: ls -al build/libs
 
       - name: Copy files to EC2
         uses: appleboy/scp-action@v0.1.4
@@ -40,8 +54,8 @@ jobs:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USERNAME }}
           key: ${{ secrets.EC2_KEY }}
-          source: "./build/libs/community-0.0.1-SNAPSHOT.jar,.env"
-          target: "~/app"
+          source: "./build/libs/${{ steps.branch-info.outputs.jar_name }},.env"
+          target: "~/app/${{ steps.branch-info.outputs.branch }}"
 
       - name: Remote SSH to EC2 - Run Docker
         uses: appleboy/ssh-action@v1.0.0
@@ -50,11 +64,15 @@ jobs:
           username: ${{ secrets.EC2_USERNAME }}
           key: ${{ secrets.EC2_KEY }}
           script: |
-            cd ~/app
-            JAR_NAME=community-0.0.1-SNAPSHOT.jar
-            docker stop my-app || true
-            docker rm my-app || true
-            docker run -d --name my-app -p 8080:8080 \
+            BRANCH="${{ steps.branch-info.outputs.branch }}"
+            JAR_NAME="${{ steps.branch-info.outputs.jar_name }}"
+            CONTAINER_NAME="${{ steps.branch-info.outputs.container_name }}"
+
+            cd ~/app/$BRANCH
+            docker stop $CONTAINER_NAME || true
+            docker rm $CONTAINER_NAME || true
+
+            docker run -d --name $CONTAINER_NAME -p 8080:8080 \
               --env-file .env \
-              -v ~/app/$JAR_NAME:/app.jar \
+              -v ~/app/$BRANCH/$JAR_NAME:/app.jar \
               openjdk:17 java -jar /app.jar
