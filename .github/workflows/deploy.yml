@@ -1,4 +1,4 @@
-name: Deploy to EC2
+name: Deploy to EC2 with Docker Compose
 
 on:
   push:
@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # 1. 소스 코드 체크아웃
+      # 1. 코드 체크아웃
       - name: Checkout repository
         uses: actions/checkout@v3
 
@@ -23,56 +23,52 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
-      # 3. gradlew 실행 권한 부여
+      # 3. gradlew 권한 부여
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
       # 4. Gradle 빌드 (테스트 제외)
-      - name: Build with Gradle (skip tests)
+      - name: Build JAR
         run: ./gradlew build -x test
 
-      # 5. 브랜치명과 JAR 이름 설정
-      - name: Get branch info
+      # 5. 브랜치명 변수 설정
+      - name: Get branch name
         id: branch-info
         run: |
           BRANCH_NAME=$(echo "${GITHUB_REF#refs/heads/}" | sed 's/\//-/g')
           echo "branch_name=$BRANCH_NAME" >> $GITHUB_OUTPUT
-          echo "jar_name=community-${BRANCH_NAME}.jar" >> $GITHUB_OUTPUT
 
-      # 6. 빌드된 JAR 파일 이름 변경
-      - name: Rename jar file dynamically
+      # 6. JAR 파일 이름 변경
+      - name: Rename jar to app.jar
         run: |
           JAR_FILE=$(find build/libs -name "*.jar" | head -n 1)
-          mv "$JAR_FILE" "build/libs/${{ steps.branch-info.outputs.jar_name }}"
+          mv "$JAR_FILE" "app.jar"
 
-      # 7. EC2로 파일 전송
-      - name: Copy files to EC2
+      # 7. JAR + Dockerfile + docker-compose.yml + .env 업로드
+      - name: Upload files to EC2
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.EC2_HOST }}
-          username: ${{ secrets.EC2_USERNAME }}
-          key: ${{ secrets.EC2_KEY }}
-          source: "build/libs/${{ steps.branch-info.outputs.jar_name }},.env"
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          source: "app.jar,Dockerfile,docker-compose.yml,.env"
           target: "~/app/${{ steps.branch-info.outputs.branch_name }}"
 
-      # 8. EC2에서 컨테이너 재배포
-      - name: Deploy on EC2
+      # 8. EC2에서 Docker Compose로 배포
+      - name: Deploy using Docker Compose
         uses: appleboy/ssh-action@v0.1.7
         with:
           host: ${{ secrets.EC2_HOST }}
-          username: ${{ secrets.EC2_USERNAME }}
-          key: ${{ secrets.EC2_KEY }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
           script: |
             BRANCH="${{ steps.branch-info.outputs.branch_name }}"
-            JAR_NAME="${{ steps.branch-info.outputs.jar_name }}"
-            CONTAINER_NAME="community-$BRANCH"
+            APP_PATH=~/app/$BRANCH
 
-            echo "[INFO] Stop and remove old container"
-            docker stop $CONTAINER_NAME || true
-            docker rm $CONTAINER_NAME || true
+            cd $APP_PATH
 
-            echo "[INFO] Run new container"
-            docker run -d --name $CONTAINER_NAME -p 8080:8080 \
-              --env-file ~/app/$BRANCH/.env \
-              -v ~/app/$BRANCH/$JAR_NAME:/app.jar \
-              openjdk:17 java -jar /app.jar
+            echo "[INFO] Stop old containers"
+            docker-compose down || true
+
+            echo "[INFO] Build and start new containers"
+            docker-compose up -d --build
