@@ -51,7 +51,7 @@ jobs:
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USER }}
-          key: ${{ secrets.EC2_SSH_KEY }}
+          key: ${{ secrets.EC2_KEY }}
           source: "build/libs/${{ steps.branch-info.outputs.jar_name }},.env"
           target: "~/app/${{ steps.branch-info.outputs.branch_name }}"
 
@@ -61,7 +61,7 @@ jobs:
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USER }}
-          key: ${{ secrets.EC2_SSH_KEY }}
+          key: ${{ secrets.EC2_KEY }}
           script: |
             BRANCH="${{ steps.branch-info.outputs.branch_name }}"
             JAR_NAME="${{ steps.branch-info.outputs.jar_name }}"
