@@ -54,10 +54,11 @@ jobs:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USERNAME }}
           key: ${{ secrets.EC2_KEY }}
-          source: |
-            build/libs/${{ steps.branch-info.outputs.jar_name }}
-            .env
+          source:
+            - build/libs/${{ steps.branch-info.outputs.jar_name }}
+            - .env
           target: "~/app/${{ steps.branch-info.outputs.branch }}"
+
 
       - name: Remote SSH to EC2 - Run Docker
         uses: appleboy/ssh-action@v1.0.0
