@@ -39,7 +39,14 @@ public class UserCouponService {
                     .expiredAt(null)
                     .build();
         }
-        couponRepository.decreaseAmount(couponId);
+        int updated = couponRepository.decreaseAmount(couponId);
+        if(updated == 0 ){
+            return UserCouponRes.IssueCouponDto.builder()
+                    .message("쿠폰 재고가 모두 소진되었습니다.")
+                    .issuedAt(null)
+                    .expiredAt(null)
+                    .build();
+        }
 
                 UserCoupon userCoupon = userCouponRepository.save(
                         UserCoupon.builder()
