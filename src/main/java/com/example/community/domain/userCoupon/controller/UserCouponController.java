@@ -22,6 +22,11 @@ public class UserCouponController {
         return ApiResponse.onSuccess(userCouponService.issueCoupon(userDetails.getUsername(), issueCouponDto));
     }
 
+    @PostMapping("/issueTest")
+    public ApiResponse<UserCouponRes.IssueCouponDto> issueCouponTest(@RequestParam String username, @RequestBody UserCouponReq.IssueCouponDto issueCouponDto ) {
+        return ApiResponse.onSuccess(userCouponService.issueCoupon(username, issueCouponDto));
+    }
+
     @PatchMapping("/use")
     public ApiResponse<UserCouponRes.UseCouponDto> useCoupon(@AuthenticationPrincipal UserDetails userDetails, @RequestBody UserCouponReq.UseCouponDto useCouponDto ) {
         return ApiResponse.onSuccess(userCouponService.useCoupon(userDetails.getUsername(),useCouponDto));
