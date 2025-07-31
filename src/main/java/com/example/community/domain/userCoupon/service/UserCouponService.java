@@ -38,7 +38,7 @@ public class UserCouponService {
                     .build();
         }
 
-        coupon.decreaseAmount();
+
         if(coupon.getAmount()<=0){
             return UserCouponRes.IssueCouponDto.builder()
                     .message("쿠폰 재고가 소진되었습니다.")
@@ -46,6 +46,7 @@ public class UserCouponService {
                     .expiredAt(null)
                     .build();
         }
+        coupon.decreaseAmount();
 
                 UserCoupon userCoupon = userCouponRepository.save(
                         UserCoupon.builder()
