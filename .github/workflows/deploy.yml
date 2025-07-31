@@ -44,7 +44,14 @@ jobs:
           JAR_FILE=$(find build/libs -name "*.jar" | head -n 1)
           mv "$JAR_FILE" "app.jar"
 
-      # 7. EC2로 파일 업로드 (JAR + Dockerfile + docker-compose.yml + .env)
+      # ✅ 7. .env 파일 생성 (Secrets에서 가져옴)
+      - name: Create .env file
+        run: |
+          echo "SPRING_DATASOURCE_URL=${{ secrets.SPRING_DATASOURCE_URL }}" >> .env
+          echo "SPRING_DATASOURCE_USERNAME=${{ secrets.SPRING_DATASOURCE_USERNAME }}" >> .env
+          echo "SPRING_DATASOURCE_PASSWORD=${{ secrets.SPRING_DATASOURCE_PASSWORD }}" >> .env
+
+      # 8. EC2로 파일 업로드
       - name: Upload files to EC2
         uses: appleboy/scp-action@v0.1.7
         with:
@@ -54,7 +61,7 @@ jobs:
           source: "app.jar,Dockerfile,docker-compose.yml,.env"
           target: "~/app/${{ steps.branch-info.outputs.branch_name }}"
 
-      # 8. EC2에서 Docker Compose 설치 + 배포
+      # 9. EC2에서 Docker Compose 설치 + 배포
       - name: Deploy using Docker Compose
         uses: appleboy/ssh-action@v0.1.7
         with:
