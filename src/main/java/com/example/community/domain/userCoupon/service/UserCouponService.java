@@ -44,7 +44,7 @@ public class UserCouponService {
             UserCoupon userCoupon = userCouponRepository.save(
                     UserCoupon.builder()
                             .user(user)
-                            .coupon(coupon)      // coupon은 proxy이어도 무방
+                            .coupon(coupon)
                             .expiredAt(LocalDateTime.now()
                                     .plusDays(coupon.getValidDays()))
                             .isUsed(false)
