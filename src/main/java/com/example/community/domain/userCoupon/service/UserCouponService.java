@@ -10,6 +10,7 @@ import com.example.community.domain.userCoupon.dto.UserCouponRes;
 import com.example.community.domain.userCoupon.entity.UserCoupon;
 import com.example.community.domain.userCoupon.repository.UserCouponRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -30,15 +31,6 @@ public class UserCouponService {
         User user = userRepository.findByUsername(username).orElseThrow(() -> new RuntimeException("해당 사용자를 찾을 수 없습니다."));
         Coupon coupon = couponRepository.findByIdForUpdate(couponId).orElseThrow(() -> new RuntimeException("해당 쿠폰을 찾을 수 없습니다."));
 
-        if(userCouponRepository.existsByUserAndCoupon(user,coupon)){
-            return UserCouponRes.IssueCouponDto.builder()
-                    .message("이미 쿠폰을 발급받았습니다.")
-                    .issuedAt(null)
-                    .expiredAt(null)
-                    .build();
-        }
-
-
         if(coupon.getAmount()<=0){
             return UserCouponRes.IssueCouponDto.builder()
                     .message("쿠폰 재고가 소진되었습니다.")
@@ -48,25 +40,34 @@ public class UserCouponService {
         }
         coupon.decreaseAmount();
 
-                UserCoupon userCoupon = userCouponRepository.save(
-                        UserCoupon.builder()
-                                .user(user)
-                                .coupon(coupon)      // coupon은 proxy이어도 무방
-                                .expiredAt(LocalDateTime.now()
-                                        .plusDays(coupon.getValidDays()))
-                                .isUsed(false)
-                                .build()
-                );
+        try {
+            UserCoupon userCoupon = userCouponRepository.save(
+                    UserCoupon.builder()
+                            .user(user)
+                            .coupon(coupon)      // coupon은 proxy이어도 무방
+                            .expiredAt(LocalDateTime.now()
+                                    .plusDays(coupon.getValidDays()))
+                            .isUsed(false)
+                            .build()
+            );
+            return UserCouponRes.IssueCouponDto.builder()
+                    .message("쿠폰 발급 완료")
+                    .issuedAt(userCoupon.getCreatedAt())
+                    .expiredAt(userCoupon.getExpiredAt())
+                    .build();
+
+        }catch (DataIntegrityViolationException e) {
+            return UserCouponRes.IssueCouponDto.builder()
+                    .message("이미 쿠폰을 발급받았습니다.")
+                    .issuedAt(null)
+                    .expiredAt(null)
+                    .build();
+        }
+        }
 
 
 
-                return UserCouponRes.IssueCouponDto.builder()
-                        .message("쿠폰 발급 완료")
-                        .issuedAt(userCoupon.getCreatedAt())
-                        .expiredAt(userCoupon.getExpiredAt())
-                        .build();
 
-            }
 
 
 
