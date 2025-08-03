@@ -62,11 +62,29 @@ public class PostService {
 
 
 
+
         return PostRes.SavePostDto.builder()
                 .createdAt(post.getCreatedAt())
                 .build();
 
 
+    }
+
+    public PostRes.SavePostDto savePostTest(String username, PostReq.SavePostTestDto savePostTestDto) {
+        User user = userRepository.findByUsername(username).orElseThrow(()-> new RuntimeException("해당 사용자를 찾을 수 없습니다."));
+        Post post = Post.builder()
+                .title(savePostTestDto.getTitle())
+                .content(savePostTestDto.getContent())
+                .category(Category.valueOf(savePostTestDto.getCategory()))
+                .likeCount(savePostTestDto.getLikeCount())
+                .viewCount(1)
+                .user(user)
+                .build();
+        postRepository.save(post);
+
+        return PostRes.SavePostDto.builder()
+                .createdAt(post.getCreatedAt())
+                .build();
     }
 
     public PostRes.ModifyPostDto modifyPost(PostReq.ModifyPostDto modifyPostDto) {
@@ -158,4 +176,6 @@ public class PostService {
         );
         return postRepository.findByTitleContainingWithUser(savePostListDto.getKeyword(), pageable).map(PostRes::toPostPreviewDto);
     }
+
+
 }

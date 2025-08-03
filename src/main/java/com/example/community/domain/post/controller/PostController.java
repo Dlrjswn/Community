@@ -27,6 +27,11 @@ public class PostController {
         return ApiResponse.onSuccess(postService.savePost(userDetails.getUsername(), savePostDto));
     }
 
+    @PostMapping("/saveTest")
+    public ApiResponse<PostRes.SavePostDto> savePostTest(@RequestParam String username, @RequestBody PostReq.SavePostTestDto savePostTestDto) {
+        return ApiResponse.onSuccess(postService.savePostTest(username, savePostTestDto));
+    }
+
     @PatchMapping("/modify")
     public ApiResponse<PostRes.ModifyPostDto> modifyPost(@RequestBody PostReq.ModifyPostDto modifyPostDto) {
         return ApiResponse.onSuccess(postService.modifyPost(modifyPostDto));

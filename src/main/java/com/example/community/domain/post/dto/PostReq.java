@@ -18,6 +18,15 @@ public class PostReq {
     }
 
     @Getter
+    public static class SavePostTestDto{
+        private String title;
+        private String content;
+        private String category;
+        private Integer likeCount;
+
+    }
+
+    @Getter
     public static class ModifyPostDto{
         private Long postId;
         private String title;
