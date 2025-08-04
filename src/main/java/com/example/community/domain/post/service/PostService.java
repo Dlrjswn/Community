@@ -43,23 +43,31 @@ public class PostService {
     private static final long EXPIRE_SECONDS = 60 * 5;
 
     public void generateTestPosts() {
-        String[] categories = {"SOCCER", "BASEBALL", "BASKETBALL"};
-        List<Post> allPosts = new ArrayList<>(50_000);
+        String[] keywordsKor = {"축구", "야구", "농구"};
+        String[] categoriesEng = {"SOCCER", "BASEBALL", "BASKETBALL"};
+        List<Post> allPosts = new ArrayList<>(200_000);
 
         LocalDateTime baseTime = LocalDateTime.now();
         long postCounter = 0;
 
-        for (int userIndex = 1; userIndex <= 1000; userIndex++) {
+        int totalPosts = 200_000;
+        int users = 1000;
+        int postsPerUser = totalPosts / users; // 200개씩
+
+        for (int userIndex = 1; userIndex <= users; userIndex++) {
             User user = userRepository.findByUsername("user" + userIndex)
                     .orElseThrow(() -> new RuntimeException("유저를 찾을 수 없습니다."));
 
-            for (int postIndex = 1; postIndex <= 50; postIndex++) {
-                String category = categories[(postIndex - 1) % categories.length];
+            for (int postIndex = 1; postIndex <= postsPerUser; postIndex++) {
+                int keywordIndex = (postIndex - 1) % keywordsKor.length;
+
+                String title = keywordsKor[keywordIndex] + " 테스트 제목 " + userIndex + "-" + postIndex;
+                String categoryEng = categoriesEng[keywordIndex];
 
                 Post post = Post.builder()
-                        .title("테스트 제목 " + userIndex + "-" + postIndex)
+                        .title(title) // 제목에 한글 키워드
                         .content("테스트 내용입니다. 작성자: " + user.getUsername())
-                        .category(Category.valueOf(category))
+                        .category(Category.valueOf(categoryEng)) // 카테고리 영문
                         .user(user)
                         .likeCount(0)
                         .viewCount(0)
@@ -75,6 +83,7 @@ public class PostService {
 
         postRepository.saveAll(allPosts);
     }
+
 
 
     public PostRes.SavePostDto savePost(String username, PostReq.SavePostDto savePostDto) {
