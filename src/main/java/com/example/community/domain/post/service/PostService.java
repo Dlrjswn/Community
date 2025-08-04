@@ -76,7 +76,7 @@ public class PostService {
                 .title(savePostTestDto.getTitle())
                 .content(savePostTestDto.getContent())
                 .category(Category.valueOf(savePostTestDto.getCategory()))
-                .likeCount(savePostTestDto.getLikeCount())
+                .likeCount(0)
                 .viewCount(1)
                 .user(user)
                 .build();
