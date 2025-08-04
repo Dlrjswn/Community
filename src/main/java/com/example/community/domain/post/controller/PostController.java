@@ -20,7 +20,11 @@ public class PostController {
 
     private final PostService postService;
 
-
+    @PostMapping("/generateTestPosts")
+    public String generateTestPosts() {
+        postService.generateTestPosts();
+        return "테스트용 10만 개 게시물 생성 완료 (createdAt 시간 차이 포함)";
+    }
 
     @PostMapping("/save")
     public ApiResponse<PostRes.SavePostDto> savePost(@AuthenticationPrincipal UserDetails userDetails, @RequestBody PostReq.SavePostDto savePostDto) {

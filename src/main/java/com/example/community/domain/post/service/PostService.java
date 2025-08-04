@@ -23,6 +23,8 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -39,6 +41,41 @@ public class PostService {
     private final StringRedisTemplate redisTemplate;
 
     private static final long EXPIRE_SECONDS = 60 * 5;
+
+    public void generateTestPosts() {
+        String[] categories = {"SOCCER", "BASEBALL", "BASKETBALL"};
+        List<Post> allPosts = new ArrayList<>(100_000);
+
+        LocalDateTime baseTime = LocalDateTime.now();
+        long postCounter = 0;
+
+        for (int userIndex = 1; userIndex <= 1000; userIndex++) {
+            User user = userRepository.findByUsername("user" + userIndex)
+                    .orElseThrow(() -> new RuntimeException("유저를 찾을 수 없습니다."));
+
+            for (int postIndex = 1; postIndex <= 100; postIndex++) {
+                String category = categories[(postIndex - 1) % categories.length];
+
+                Post post = Post.builder()
+                        .title("테스트 제목 " + userIndex + "-" + postIndex)
+                        .content("테스트 내용입니다. 작성자: " + user.getUsername())
+                        .category(Category.valueOf(category))
+                        .user(user)
+                        .likeCount(0)
+                        .viewCount(0)
+                        .build();
+
+                // createdAt을 1초씩 증가
+                post.setCreatedAt(baseTime.plusSeconds(postCounter));
+
+                allPosts.add(post);
+                postCounter++;
+            }
+        }
+
+        postRepository.saveAll(allPosts);
+    }
+
 
     public PostRes.SavePostDto savePost(String username, PostReq.SavePostDto savePostDto) {
         User user = userRepository.findByUsername(username).orElseThrow(()-> new RuntimeException("해당 사용자를 찾을 수 없습니다."));
