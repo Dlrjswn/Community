@@ -44,7 +44,7 @@ public class PostService {
 
     public void generateTestPosts() {
         String[] categories = {"SOCCER", "BASEBALL", "BASKETBALL"};
-        List<Post> allPosts = new ArrayList<>(100_000);
+        List<Post> allPosts = new ArrayList<>(50_000);
 
         LocalDateTime baseTime = LocalDateTime.now();
         long postCounter = 0;
@@ -53,7 +53,7 @@ public class PostService {
             User user = userRepository.findByUsername("user" + userIndex)
                     .orElseThrow(() -> new RuntimeException("유저를 찾을 수 없습니다."));
 
-            for (int postIndex = 1; postIndex <= 100; postIndex++) {
+            for (int postIndex = 1; postIndex <= 50; postIndex++) {
                 String category = categories[(postIndex - 1) % categories.length];
 
                 Post post = Post.builder()
