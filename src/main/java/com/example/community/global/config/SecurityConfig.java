@@ -36,6 +36,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/v1/auth/**").permitAll()
                         .requestMatchers(("api/v1/coupon/issueTest")).permitAll()
                         .requestMatchers(("api/v1/post/saveTest")).permitAll()
+                        .requestMatchers(("api/v1/post/generateTestPosts")).permitAll()
                         .requestMatchers(("api/v1/post/detail")).permitAll()
                         .requestMatchers(("api/v1/post/list")).permitAll()
                         .requestMatchers(("api/v1/post/search")).permitAll()
