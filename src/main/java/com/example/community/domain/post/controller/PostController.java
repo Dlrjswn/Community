@@ -56,7 +56,7 @@ public class PostController {
         return ApiResponse.onSuccess(postService.getMyPostList(userDetails.getUsername()));
     }
 
-    @GetMapping("search")
+    @GetMapping("/search")
     public ApiResponse<Page<PostRes.PostPreviewDto>> searchPostList(@RequestBody PostReq.SearchPostListDto savePostListDto){
         return ApiResponse.onSuccess(postService.searchPostList(savePostListDto));
     }
