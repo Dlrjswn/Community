@@ -1,15 +1,13 @@
 services:
   app:
     image: ghcr.io/dlrjswn/community:${IMAGE_TAG:-latest}
-    container_name: spring-app
+    container_name: spring-app-v2
     ports:
-      - "8080:8080"
+      - "8080:8080"              # v1과 동일 포트
     env_file:
       - .env
     environment:
-      # v2에서는 레디스 서비스 이름을 호스트로 사용
       SPRING_REDIS_HOST: redis
-
     depends_on:
       redis:
         condition: service_healthy
@@ -17,21 +15,17 @@ services:
 
   redis:
     image: redis:7-alpine
-    container_name: redis
+    container_name: redis-v2
     command: >
-      sh -c 'exec redis-server --appendonly yes'
+      sh -c 'exec redis-server --appendonly yes'   # 비밀번호 미사용
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 5s
       timeout: 3s
       retries: 10
     volumes:
-      - redis-data:/data
-    # 외부에서 6379 접속이 필요 없으면 포트 공개 안 해도 됩니다.
-    # 테스트용으로 필요하면 아래 주석 해제
-    # ports:
-    #   - "6379:6379"
+      - redis-v2-data:/data
     restart: unless-stopped
 
 volumes:
-  redis-data: {}
+  redis-v2-data: {}
