@@ -161,8 +161,8 @@ public class PostService {
 
     }
 
-    public PostRes.GetPostDetailDto getPostDetail(PostReq.GetPostDetailDto getPostDetailDto, HttpServletRequest request) {
-        Post post = postRepository.findByIdWithUser(getPostDetailDto.getPostId()).orElseThrow(()->new RuntimeException("해당 게시물을 찾을 수 없습니다."));
+    public PostRes.GetPostDetailDto getPostDetail(long postId, HttpServletRequest request) {
+        Post post = postRepository.findByIdWithUser(postId).orElseThrow(()->new RuntimeException("해당 게시물을 찾을 수 없습니다."));
         increaseViewCountByIp(post.getId(), request);
         Pageable pageable = PageRequest.of(0,20,Sort.by("createdAt").descending());
         Page<Comment> commentPage =  commentRepository.findByPostIdWithUser(post.getId(),pageable);
