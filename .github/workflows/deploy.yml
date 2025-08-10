@@ -38,15 +38,26 @@ jobs:
           username: ${{ secrets.EC2_USERNAME }}
           key: ${{ secrets.EC2_KEY }}
           script: |
+            set -e
             BRANCH="${{ github.ref_name }}"
             if [ "$BRANCH" = "v1" ]; then
               TARGET_DIR="/home/ubuntu/app/v1"
             else
-              TARGET_DIR="/home/ubuntu/app/v2"   # main, v2 -> v2 폴더
+              TARGET_DIR="/home/ubuntu/app/v2"
             fi
 
             cd "$TARGET_DIR"
+
+            # 1) 이전 컨테이너/로컬 이미지 정리 (로컬 v1-app/v2-app 잔재 제거)
+            docker rm -f spring-app spring-app-v2 2>/dev/null || true
+            docker rm -f redis redis-v2 2>/dev/null || true
+            docker rmi -f v1-app v2-app 2>/dev/null || true
+            docker compose down --remove-orphans || true
+
+            # 2) 커밋 SHA 태그로 배포 (캐시 꼬임 방지)
             export IMAGE_TAG="${{ github.sha }}"
             docker compose pull
             docker compose up -d
-            docker compose ps
+
+            # 3) 상태 출력
+            docker ps --format "table {{.Names}}\t{{.Image}}\t{{.Status}}\t{{.Ports}}"
