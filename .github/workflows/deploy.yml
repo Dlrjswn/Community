@@ -9,7 +9,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      packages: write  # GHCR push 권한
+      packages: write
 
     steps:
       - name: Checkout
@@ -42,10 +42,11 @@ jobs:
             if [ "$BRANCH" = "v1" ]; then
               TARGET_DIR="/home/ubuntu/app/v1"
             else
-              TARGET_DIR="/home/ubuntu/app/v2"   # main, v2는 v2 디렉터리로
+              TARGET_DIR="/home/ubuntu/app/v2"   # main, v2 -> v2 경로
             fi
 
             cd "$TARGET_DIR"
+            export IMAGE_TAG="${{ github.sha }}"
             docker compose pull
             docker compose up -d
             docker compose ps

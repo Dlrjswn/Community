@@ -4,9 +4,13 @@ WORKDIR /src
 COPY . .
 RUN gradle clean bootJar --no-daemon
 
-# 부트 JAR만 집어서 표준 이름으로 복사 (plain 제외, 스냅샷/릴리스 모두 OK)
+# BOOT-INF가 있는 '실행 가능한' 부트 JAR만 선별해 표준 이름으로 복사
 RUN mkdir -p /out && \
-    BOOT_JAR="$(find /src -path '*/build/libs/*.jar' -type f ! -name '*-plain.jar' | head -n 1)" && \
+    BOOT_JAR="$( \
+      find /src -path '*/build/libs/*.jar' -type f ! -name '*-plain.jar' -print0 \
+      | xargs -0 -I{} sh -c 'unzip -l "{}" | grep -q "BOOT-INF/" && echo "{}"' \
+      | head -n 1 \
+    )" && \
     echo "Using boot jar: $BOOT_JAR" && \
     cp "$BOOT_JAR" /out/app.jar
 
