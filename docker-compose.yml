@@ -1,24 +1,37 @@
-version: '3.8'
-
 services:
   app:
-    build: .
-    container_name: spring-app-v2
+    image: ghcr.io/dlrjswn/community:${IMAGE_TAG:-latest}
+    container_name: spring-app
     ports:
       - "8080:8080"
-    depends_on:
-      - redis
+    env_file:
+      - .env
     environment:
-      SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL}
-      SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME}
-      SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD}
+      # v2에서는 레디스 서비스 이름을 호스트로 사용
       SPRING_REDIS_HOST: redis
-      SPRING_REDIS_PORT: 6379
+
+    depends_on:
+      redis:
+        condition: service_healthy
     restart: always
 
   redis:
     image: redis:7-alpine
-    container_name: redis-v2
-    ports:
-      - "6379:6379"
-    restart: always
+    container_name: redis
+    command: >
+      sh -c 'exec redis-server --appendonly yes'
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    volumes:
+      - redis-data:/data
+    # 외부에서 6379 접속이 필요 없으면 포트 공개 안 해도 됩니다.
+    # 테스트용으로 필요하면 아래 주석 해제
+    # ports:
+    #   - "6379:6379"
+    restart: unless-stopped
+
+volumes:
+  redis-data: {}
