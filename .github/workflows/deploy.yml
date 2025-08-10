@@ -42,7 +42,7 @@ jobs:
             if [ "$BRANCH" = "v1" ]; then
               TARGET_DIR="/home/ubuntu/app/v1"
             else
-              TARGET_DIR="/home/ubuntu/app/v2"   # main, v2 -> v2 경로
+              TARGET_DIR="/home/ubuntu/app/v2"   # main, v2 -> v2 폴더
             fi
 
             cd "$TARGET_DIR"

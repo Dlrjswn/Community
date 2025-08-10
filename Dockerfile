@@ -4,7 +4,7 @@ WORKDIR /src
 COPY . .
 RUN gradle clean bootJar --no-daemon
 
-# BOOT-INF가 있는 '실행 가능한' 부트 JAR만 선별해 표준 이름으로 복사
+# BOOT-INF가 있는 '실행 가능한' 부트 JAR만 선별
 RUN mkdir -p /out && \
     BOOT_JAR="$( \
       find /src -path '*/build/libs/*.jar' -type f ! -name '*-plain.jar' -print0 \

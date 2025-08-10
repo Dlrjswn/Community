@@ -3,7 +3,7 @@ services:
     image: ghcr.io/dlrjswn/community:${IMAGE_TAG:-latest}
     container_name: spring-app-v2
     ports:
-      - "8080:8080"              # v1과 동일 포트
+      - "8080:8080"
     env_file:
       - .env
     environment:
