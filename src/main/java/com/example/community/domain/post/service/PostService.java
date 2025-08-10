@@ -41,7 +41,7 @@ public class PostService {
 
     private final StringRedisTemplate redisTemplate;
 
-    private static final long EXPIRE_SECONDS = 60 * 5;
+    private static final long VIEW_IP_TTL_SECONDS = 300;
 
     public void generateTestPosts() {
         String[] keywordsKor = {"축구", "야구", "농구"};
@@ -163,12 +163,14 @@ public class PostService {
     }
 
     @Cacheable(value = "postDetail", key = "#postId")
+    @Transactional(readOnly = true)
     public PostRes.GetPostDetailDto loadPostDetail(long postId) {
         Post post = postRepository.findByIdWithUser(postId)
                 .orElseThrow(() -> new RuntimeException("해당 게시물을 찾을 수 없습니다."));
 
         Pageable pageable = PageRequest.of(0, 20, Sort.by("createdAt").descending());
         Page<Comment> commentPage = commentRepository.findByPostIdWithUser(postId, pageable);
+
         List<CommentRes.CommentDto> comments = commentPage.getContent()
                 .stream().map(CommentRes::toCommentDto).toList();
 
@@ -181,7 +183,7 @@ public class PostService {
                 .title(post.getTitle())
                 .content(post.getContent())
                 .likeCount(post.getLikeCount())
-                .viewCount(post.getViewCount()) // DB 보유 값(기본)
+                .viewCount(post.getViewCount()) // DB 기준 값
                 .totalCommentCount(commentPage.getTotalElements())
                 .totalCommentPageCount(commentPage.getTotalPages())
                 .createdAt(post.getCreatedAt())
@@ -191,41 +193,53 @@ public class PostService {
                 .build();
     }
 
-    // ② 컨트롤러에서 사용하는 진짜 진입점
+    /** 컨트롤러가 호출하는 진입점: 조회수 증가 + 캐시된 상세 + delta 합산 */
+    @Transactional(readOnly = true)
     public PostRes.GetPostDetailDto getPostDetail(long postId, HttpServletRequest request) {
-        // 조회수 증가(중복 방지) — DB 읽기 전에 처리/비동기도 OK
-        increaseViewCountByIp(postId, request);
+        increaseViewCountByIp(postId, request); // 중복 방지 + delta 증가
 
-        // 캐시에서 본문/댓글/이미지 로드
-        PostRes.GetPostDetailDto dto = loadPostDetail(postId);
+        PostRes.GetPostDetailDto dto = loadPostDetail(postId); // 캐시 활용
 
-        // Redis delta(미반영 증가분) 합산해서 내려주기
-        String delta = redisTemplate.opsForValue().get("post:views:" + postId);
-        long add = (delta == null) ? 0L : Long.parseLong(delta);
+        String deltaStr = redisTemplate.opsForValue().get("post:views:" + postId);
+        int delta = (deltaStr == null) ? 0 : Integer.parseInt(deltaStr);
 
-        return dto;
+        // DTO가 빌더를 지원하지 않으면, 새 builder로 복사 생성
+        return PostRes.GetPostDetailDto.builder()
+                .nickname(dto.getNickname())
+                .category(dto.getCategory())
+                .title(dto.getTitle())
+                .content(dto.getContent())
+                .likeCount(dto.getLikeCount())
+                .viewCount(dto.getViewCount() + delta) // DB + 미반영분
+                .totalCommentCount(dto.getTotalCommentCount())
+                .totalCommentPageCount(dto.getTotalCommentPageCount())
+                .createdAt(dto.getCreatedAt())
+                .modifiedAt(dto.getModifiedAt())
+                .imageUrls(dto.getImageUrls())
+                .comments(dto.getComments())
+                .build();
     }
 
+    /** 원자적 SET NX EX + delta 증가 */
+    public void increaseViewCountByIp(Long postId, HttpServletRequest request) {
+        String ip = extractClientIp(request);
+        String key = "viewed:ip:" + ip + ":" + postId;
 
-public void increaseViewCountByIp(Long postId, HttpServletRequest request) {
-    String ip = extractClientIp(request);
-    String key = "viewed:ip:" + ip + ":" + postId;
-
-    // 5분 중복 방지: setIfAbsent(key, "1", 5분)
-    Boolean firstTime = redisTemplate.opsForValue()
-            .setIfAbsent(key, "1", EXPIRE_SECONDS, TimeUnit.SECONDS);
-    if (Boolean.TRUE.equals(firstTime)) {
-        redisTemplate.opsForValue().increment("post:views:" + postId); // delta +1
+        Boolean firstTime = redisTemplate.opsForValue()
+                .setIfAbsent(key, "1", VIEW_IP_TTL_SECONDS, TimeUnit.SECONDS); // NX + EX
+        if (Boolean.TRUE.equals(firstTime)) {
+            redisTemplate.opsForValue().increment("post:views:" + postId);
+        }
     }
-}
 
-private String extractClientIp(HttpServletRequest request) {
-    String forwarded = request.getHeader("X-Forwarded-For");
-    if (forwarded != null && !forwarded.isEmpty()) {
-        return forwarded.split(",")[0].trim();
+    private String extractClientIp(HttpServletRequest request) {
+        String forwarded = request.getHeader("X-Forwarded-For");
+        if (forwarded != null && !forwarded.isEmpty()) {
+            return forwarded.split(",")[0].trim();
+        }
+        return request.getRemoteAddr();
     }
-    return request.getRemoteAddr();
-}
+
 
     // 카테고리별
     public Page<PostRes.PostPreviewDto> getPostList(PostReq.GetPostListDto getPostListDto) {
