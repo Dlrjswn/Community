@@ -2,6 +2,8 @@ package com.example.community.domain.post.service;
 
 import com.example.community.domain.post.repository.PostRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.redis.core.Cursor;
+import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -18,38 +20,30 @@ public class ViewCountSyncScheduler {
     private final PostRepository postRepository;
 
     // 1분마다 실행 (원하는 주기로 조절 가능)
-    @Scheduled(fixedRate = 60000)
+    @Scheduled(fixedRate = 60_000)
     @Transactional
     public void syncViewCountToDB() {
-        // Redis에 저장된 모든 조회수 키 가져오기
-        Set<String> keys = redisTemplate.keys("post:views:*");
-        if (keys == null || keys.isEmpty()) {
-            return;
-        }
+        // post:views:* 키들을 SCAN으로 순회
+        String pattern = "post:views:*";
+        String cursor = "0";
+        do {
+            ScanOptions options = ScanOptions.scanOptions().match(pattern).count(500).build();
+            Cursor<byte[]> scan = redisTemplate.getConnectionFactory()
+                    .getConnection().scan(options);
 
-        for (String key : keys) {
-            try {
-                // 키에서 postId 추출
-                String postIdStr = key.replace("post:views:", "");
+            while (scan.hasNext()) {
+                String key = new String(scan.next());
+                String postIdStr = key.substring("post:views:".length());
                 Long postId = Long.parseLong(postIdStr);
 
-                // Redis에서 조회수 값 가져오기
-                String value = redisTemplate.opsForValue().get(key);
-                if (value == null) continue;
+                String val = redisTemplate.opsForValue().get(key);
+                if (val == null) continue;
 
-                Integer viewCount = Integer.parseInt(value);
-
-                // DB에 조회수 누적 반영
-                postRepository.increaseViewCount(postId, viewCount);
-
-                // 처리 완료 후 Redis 키 삭제
+                int delta = Integer.parseInt(val);
+                postRepository.increaseViewCount(postId, delta);
                 redisTemplate.delete(key);
-
-            } catch (Exception e) {
-                // 로그 기록 후 계속 처리
-                // (예: NumberFormatException, DB 예외 등)
-                e.printStackTrace();
             }
-        }
+            cursor = "0"; // Spring Data Redis scan 커서 관리 단순화 (위 방식이면 한 번에 소화)
+        } while (!"0".equals(cursor));
     }
 }

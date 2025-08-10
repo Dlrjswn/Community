@@ -15,6 +15,7 @@ import com.example.community.domain.user.entity.User;
 import com.example.community.domain.user.repository.UserRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -161,13 +162,18 @@ public class PostService {
 
     }
 
-    public PostRes.GetPostDetailDto getPostDetail(long postId, HttpServletRequest request) {
-        Post post = postRepository.findByIdWithUser(postId).orElseThrow(()->new RuntimeException("해당 게시물을 찾을 수 없습니다."));
-        increaseViewCountByIp(post.getId(), request);
-        Pageable pageable = PageRequest.of(0,20,Sort.by("createdAt").descending());
-        Page<Comment> commentPage =  commentRepository.findByPostIdWithUser(post.getId(),pageable);
-        List<CommentRes.CommentDto> comments = commentPage.getContent().stream().map(CommentRes::toCommentDto).toList();
-        List<String> imageUrls = postImageRepository.findAllByPostId(post.getId()).stream().map(PostImage::getImageUrl).toList();
+    @Cacheable(value = "postDetail", key = "#postId")
+    public PostRes.GetPostDetailDto loadPostDetail(long postId) {
+        Post post = postRepository.findByIdWithUser(postId)
+                .orElseThrow(() -> new RuntimeException("해당 게시물을 찾을 수 없습니다."));
+
+        Pageable pageable = PageRequest.of(0, 20, Sort.by("createdAt").descending());
+        Page<Comment> commentPage = commentRepository.findByPostIdWithUser(postId, pageable);
+        List<CommentRes.CommentDto> comments = commentPage.getContent()
+                .stream().map(CommentRes::toCommentDto).toList();
+
+        List<String> imageUrls = postImageRepository.findAllByPostId(postId)
+                .stream().map(PostImage::getImageUrl).toList();
 
         return PostRes.GetPostDetailDto.builder()
                 .nickname(post.getUser().getNickname())
@@ -175,7 +181,7 @@ public class PostService {
                 .title(post.getTitle())
                 .content(post.getContent())
                 .likeCount(post.getLikeCount())
-                .viewCount(post.getViewCount())
+                .viewCount(post.getViewCount()) // DB 보유 값(기본)
                 .totalCommentCount(commentPage.getTotalElements())
                 .totalCommentPageCount(commentPage.getTotalPages())
                 .createdAt(post.getCreatedAt())
@@ -185,25 +191,41 @@ public class PostService {
                 .build();
     }
 
-   public void increaseViewCountByIp(Long postId, HttpServletRequest request) {
-        String ip = extractClientIp(request);
-        String key = "viewed:ip:" + ip + ":" + postId;
+    // ② 컨트롤러에서 사용하는 진짜 진입점
+    public PostRes.GetPostDetailDto getPostDetail(long postId, HttpServletRequest request) {
+        // 조회수 증가(중복 방지) — DB 읽기 전에 처리/비동기도 OK
+        increaseViewCountByIp(postId, request);
 
-        if (Boolean.TRUE.equals(redisTemplate.hasKey(key))) {
-            return; // 이미 조회한 기록 있음
-        }
+        // 캐시에서 본문/댓글/이미지 로드
+        PostRes.GetPostDetailDto dto = loadPostDetail(postId);
 
-        redisTemplate.opsForValue().set(key, "1", EXPIRE_SECONDS, TimeUnit.SECONDS); // 5분 중복 방지
-        redisTemplate.opsForValue().increment("post:views:" + postId); // 조회수 증가
+        // Redis delta(미반영 증가분) 합산해서 내려주기
+        String delta = redisTemplate.opsForValue().get("post:views:" + postId);
+        long add = (delta == null) ? 0L : Long.parseLong(delta);
+
+        return dto;
     }
 
-    private String extractClientIp(HttpServletRequest request) {
-        String forwarded = request.getHeader("X-Forwarded-For");
-        if (forwarded != null && !forwarded.isEmpty()) {
-            return forwarded.split(",")[0];
-        }
-        return request.getRemoteAddr();
+
+public void increaseViewCountByIp(Long postId, HttpServletRequest request) {
+    String ip = extractClientIp(request);
+    String key = "viewed:ip:" + ip + ":" + postId;
+
+    // 5분 중복 방지: setIfAbsent(key, "1", 5분)
+    Boolean firstTime = redisTemplate.opsForValue()
+            .setIfAbsent(key, "1", EXPIRE_SECONDS, TimeUnit.SECONDS);
+    if (Boolean.TRUE.equals(firstTime)) {
+        redisTemplate.opsForValue().increment("post:views:" + postId); // delta +1
     }
+}
+
+private String extractClientIp(HttpServletRequest request) {
+    String forwarded = request.getHeader("X-Forwarded-For");
+    if (forwarded != null && !forwarded.isEmpty()) {
+        return forwarded.split(",")[0].trim();
+    }
+    return request.getRemoteAddr();
+}
 
     // 카테고리별
     public Page<PostRes.PostPreviewDto> getPostList(PostReq.GetPostListDto getPostListDto) {
@@ -225,3 +247,4 @@ public class PostService {
 
 
 }
+
