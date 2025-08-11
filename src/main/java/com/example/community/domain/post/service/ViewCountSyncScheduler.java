@@ -24,21 +24,20 @@ public class ViewCountSyncScheduler {
     public void syncViewCountToDB() {
         final String pattern = "post:views:*";
 
-        RedisConnection conn = redisTemplate.getConnectionFactory().getConnection();
-        ScanOptions scanOptions = ScanOptions.scanOptions().match(pattern).count(500).build();
+        var conn = redisTemplate.getConnectionFactory().getConnection();
+        var scanOptions = ScanOptions.scanOptions().match(pattern).count(500).build();
 
         try (var cursor = conn.scan(scanOptions)) {
             while (cursor.hasNext()) {
-                String key = new String(cursor.next(), StandardCharsets.UTF_8);
-                String postIdStr = key.substring("post:views:".length());
-                Long postId = Long.parseLong(postIdStr);
+                String key = new String(cursor.next(), java.nio.charset.StandardCharsets.UTF_8);
+                Long postId = Long.parseLong(key.substring("post:views:".length()));
 
                 String val = redisTemplate.opsForValue().get(key);
                 if (val == null) continue;
 
-                int delta = Integer.parseInt(val);
-                postRepository.increaseViewCount(postId, delta); // 누적 증가
-                redisTemplate.delete(key); // 처리 완료 후 삭제
+                int delta = Integer.parseInt(val);            // int 사용 요청 반영
+                postRepository.increaseViewCount(postId, delta); // view_count += :delta
+                redisTemplate.delete(key);
             }
         } catch (Exception e) {
         }
