@@ -13,6 +13,7 @@ import com.example.community.domain.post.repository.PostImageRepository;
 import com.example.community.domain.post.repository.PostRepository;
 import com.example.community.domain.user.entity.User;
 import com.example.community.domain.user.repository.UserRepository;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.Cacheable;
@@ -21,6 +22,8 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -41,7 +44,7 @@ public class PostService {
 
     private final StringRedisTemplate redisTemplate;
 
-    private static final long VIEW_IP_TTL_SECONDS = 300;
+    private static final long VIEW_KEY_TTL_SECONDS = 300;
 
     public void generateTestPosts() {
         String[] keywordsKor = {"축구", "야구", "농구"};
@@ -196,48 +199,89 @@ public class PostService {
     /** 컨트롤러가 호출하는 진입점: 조회수 증가 + 캐시된 상세 + delta 합산 */
     @Transactional(readOnly = true)
     public PostRes.GetPostDetailDto getPostDetail(long postId, HttpServletRequest request) {
-        increaseViewCountByIp(postId, request); // 중복 방지 + delta 증가
+        // 1) 중복 방지 + Redis 델타 증가 (DB는 바로 안 건드림)
+        increaseViewCount(postId, request);
 
-        PostRes.GetPostDetailDto dto = loadPostDetail(postId); // 캐시 활용
+        // 2) 상세는 매번 DB에서 조회 (캐싱 없음)
+        Post post = postRepository.findByIdWithUser(postId)
+                .orElseThrow(() -> new RuntimeException("해당 게시물을 찾을 수 없습니다."));
 
-        String deltaStr = redisTemplate.opsForValue().get("post:views:" + postId);
-        int delta = (deltaStr == null) ? 0 : Integer.parseInt(deltaStr);
+        Pageable pageable = PageRequest.of(0, 20, Sort.by("createdAt").descending());
+        Page<Comment> commentPage = commentRepository.findByPostIdWithUser(postId, pageable);
 
-        // DTO가 빌더를 지원하지 않으면, 새 builder로 복사 생성
+        List<CommentRes.CommentDto> comments = commentPage.getContent()
+                .stream().map(CommentRes::toCommentDto).toList();
+
+        List<String> imageUrls = postImageRepository.findAllByPostId(postId)
+                .stream().map(PostImage::getImageUrl).toList();
+
+        // 3) 응답의 viewCount는 DB 기준 값만 사용 (Redis 델타 합산 X)
         return PostRes.GetPostDetailDto.builder()
-                .nickname(dto.getNickname())
-                .category(dto.getCategory())
-                .title(dto.getTitle())
-                .content(dto.getContent())
-                .likeCount(dto.getLikeCount())
-                .viewCount(dto.getViewCount() + delta) // DB + 미반영분
-                .totalCommentCount(dto.getTotalCommentCount())
-                .totalCommentPageCount(dto.getTotalCommentPageCount())
-                .createdAt(dto.getCreatedAt())
-                .modifiedAt(dto.getModifiedAt())
-                .imageUrls(dto.getImageUrls())
-                .comments(dto.getComments())
+                .nickname(post.getUser().getNickname())
+                .category(post.getCategory().name())
+                .title(post.getTitle())
+                .content(post.getContent())
+                .likeCount(post.getLikeCount())
+                .viewCount(post.getViewCount())
+                .totalCommentCount(commentPage.getTotalElements())
+                .totalCommentPageCount(commentPage.getTotalPages())
+                .createdAt(post.getCreatedAt())
+                .modifiedAt(post.getModifiedAt())
+                .imageUrls(imageUrls)
+                .comments(comments)
                 .build();
     }
 
-    /** 원자적 SET NX EX + delta 증가 */
-    public void increaseViewCountByIp(Long postId, HttpServletRequest request) {
-        String ip = extractClientIp(request);
-        String key = "viewed:ip:" + ip + ":" + postId;
+    /** 로그인 유저=userId, 비로그인=쿠키(ANON_ID), 최후수단=IP로 중복 방지하여 delta 증가 */
+    public void increaseViewCount(Long postId, HttpServletRequest request) {
+        String who = resolveViewerIdentifier(request); // "user:123" / "anon:uuid" / "ip:1.2.3.4"
+        String lockKey = "viewed:" + who + ":" + postId;   // 중복 방지 키
+        String counterKey = "post:views:" + postId;        // 델타 카운터 키
 
         Boolean firstTime = redisTemplate.opsForValue()
-                .setIfAbsent(key, "1", VIEW_IP_TTL_SECONDS, TimeUnit.SECONDS); // NX + EX
+                .setIfAbsent(lockKey, "1", VIEW_KEY_TTL_SECONDS, TimeUnit.SECONDS); // NX + EX(5분)
         if (Boolean.TRUE.equals(firstTime)) {
-            redisTemplate.opsForValue().increment("post:views:" + postId);
+            redisTemplate.opsForValue().increment(counterKey); // 최초 조회만 +1
         }
     }
 
-    private String extractClientIp(HttpServletRequest request) {
-        String forwarded = request.getHeader("X-Forwarded-For");
-        if (forwarded != null && !forwarded.isEmpty()) {
-            return forwarded.split(",")[0].trim();
+    /** viewer 식별자: userId(로그인) > 쿠키(ANON_ID) > IP */
+    private String resolveViewerIdentifier(HttpServletRequest request) {
+        // 1) 로그인 유저
+        try {
+            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+            if (auth != null && auth.isAuthenticated() && auth.getPrincipal() != null
+                    && !"anonymousUser".equals(String.valueOf(auth.getPrincipal()))) {
+
+                // CustomUserDetails#getId()가 있다면 우선 사용
+                Object principal = auth.getPrincipal();
+                try {
+                    var method = principal.getClass().getMethod("getId");
+                    Object id = method.invoke(principal);
+                    if (id != null) return "user:" + id.toString();
+                } catch (NoSuchMethodException ignore) {
+                    // 없으면 username 사용
+                    String name = auth.getName();
+                    if (name != null && !name.isBlank()) return "user:" + name;
+                }
+            }
+        } catch (Exception ignored) {}
+
+        // 2) 비로그인: 쿠키(ANON_ID)
+        if (request.getCookies() != null) {
+            for (Cookie c : request.getCookies()) {
+                if ("ANON_ID".equals(c.getName()) && c.getValue() != null && !c.getValue().isBlank()) {
+                    return "anon:" + c.getValue();
+                }
+            }
         }
-        return request.getRemoteAddr();
+
+        // 3) 최후: IP
+        String forwarded = request.getHeader("X-Forwarded-For");
+        String ip = (forwarded != null && !forwarded.isBlank())
+                ? forwarded.split(",")[0].trim()
+                : request.getRemoteAddr();
+        return "ip:" + ip;
     }
 
 
